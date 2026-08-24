@@ -56,7 +56,7 @@ const ChatPage = () => {
 
 
 	return (
-		<main className='flex h-full min-h-0 flex-col rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 overflow-hidden relative'>
+		<main className='flex h-full min-h-0 flex-col rounded-lg bg-gradient-to-b from-zinc-800 to-zinc-900 overflow-hidden relative pb-14 lg:pb-0'>
 			<Topbar search={search} setSearch={setSearch} />
 
 			{/* container switches to flex column on small screens and becomes a two-col grid at lg+ */}

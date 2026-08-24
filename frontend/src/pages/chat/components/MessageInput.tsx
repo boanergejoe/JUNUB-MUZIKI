@@ -11,26 +11,27 @@ const MessageInput = () => {
 	const { selectedUser, sendMessage } = useChatStore();
 
 	const handleSend = () => {
-		if (!selectedUser || !user || !newMessage) return;
-		sendMessage(selectedUser.clerkId, user.id, newMessage.trim());
+		const message = newMessage.trim();
+		if (!selectedUser || !user || !message) return;
+		sendMessage(selectedUser.clerkId, user.id, message);
 		setNewMessage("");
 	};
 
 	return (
-		<div className='p-4 border-t border-zinc-800 bg-zinc-900 sticky bottom-0'>
-			<div className='flex gap-2'>
+		<div className='shrink-0 border-t border-zinc-800 bg-zinc-900 p-3 sm:p-4'>
+			<form className='flex gap-2' onSubmit={(event) => { event.preventDefault(); handleSend(); }}>
 				<Input
+					type='text'
 					placeholder='Type a message'
 					value={newMessage}
 					onChange={(e) => setNewMessage(e.target.value)}
-					className='bg-zinc-800 border-none'
-					onKeyDown={(e) => e.key === "Enter" && handleSend()}
+					className='min-w-0 bg-zinc-800 border-none'
 				/>
 
-				<Button size={"icon"} onClick={handleSend} disabled={!newMessage.trim()}>
+				<Button type='submit' size={'icon'} aria-label='Send message' disabled={!newMessage.trim()}>
 					<Send className='size-4' />
 				</Button>
-			</div>
+			</form>
 		</div>
 	);
 };
