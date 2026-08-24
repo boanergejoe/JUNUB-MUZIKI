@@ -1,0 +1,30 @@
+{
+    "name": "Junub Muziki - Music Streaming",
+    "short_name": "Junub Muziki",
+    "description": "Stream your favorite music with Junub Muziki",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#1db954",
+    "icons": [
+        {
+            "src": "/Junub Muziki.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/Junub Muziki.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "music",
+        "entertainment"
+    ],
+    "lang": "en",
+    "dir": "ltr"
+}</content>
+<parameter name="filePath">c:\Users\ssebi\OneDrive\Desktop\SSD\frontend\public\manifest.json
