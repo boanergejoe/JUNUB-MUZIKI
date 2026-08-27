@@ -82,7 +82,7 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }:
 							<h3 className="font-medium mb-2 truncate">{song.title}</h3>
 							<Link
 								to={`/artists/${encodeURIComponent(song.artist)}`}
-								className="text-sm text-zinc-400 truncate hover:text-white transition-colors"
+								className="block min-w-0 whitespace-normal break-words text-sm leading-5 text-zinc-400 hover:text-white transition-colors"
 							>
 								{song.artist}
 							</Link>
