@@ -1,4 +1,5 @@
 import { Song } from "../models/song.model.js";
+import { User } from "../models/user.model.js";
 
 export const getAllSongs = async (req, res, next) => {
 	try {
@@ -184,10 +185,9 @@ export const downloadSong = async (req, res, next) => {
 		// Check if song is premium
 		if (song.isPremium) {
 			// Verify user has premium access
-			const User = require("../models/user.model.js").User;
-			const user = await User.findById(userId);
+			const user = await User.findOne({ clerkId: userId });
 			
-			if (!user || !user.isPremium) {
+			if (!user || !user.premium) {
 				return res.status(403).json({ message: "Premium access required" });
 			}
 		}

@@ -8,9 +8,10 @@ import AlbumsTabContent from "./components/AlbumsTabContent";
 import PremiumTabContent from "./components/PremiumTabContent";
 import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
+import AdminAccess from "./components/AdminAccess";
 
 const AdminPage = () => {
-	const { isAdmin, isLoading } = useAuthStore();
+	const { isAdmin, isSuperAdmin, isLoading } = useAuthStore();
 
 	const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
 
@@ -30,6 +31,7 @@ const AdminPage = () => {
 			<Header />
 
 			<DashboardStats />
+			{isSuperAdmin && <AdminAccess />}
 
 			<Tabs defaultValue='songs' className='space-y-6'>
 				<TabsList className='p-1 bg-zinc-800/50'>

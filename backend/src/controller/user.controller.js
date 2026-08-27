@@ -46,7 +46,7 @@ export const likeSong = async (req, res, next) => {
 		const user = await User.findOne({ clerkId: userId });
 		if (!user) return res.status(404).json({ message: "User not found" });
 
-		if (!user.likedSongs.includes(songId)) {
+		if (!user.likedSongs.some((likedSongId) => likedSongId.toString() === songId)) {
 			user.likedSongs.push(songId);
 			await user.save();
 			// Increment likesCount on the song
@@ -67,10 +67,12 @@ export const unlikeSong = async (req, res, next) => {
 		const user = await User.findOne({ clerkId: userId });
 		if (!user) return res.status(404).json({ message: "User not found" });
 
-		user.likedSongs = user.likedSongs.filter((s) => s.toString() !== songId);
+		const wasLiked = user.likedSongs.some((likedSongId) => likedSongId.toString() === songId);
+		user.likedSongs = user.likedSongs.filter((likedSongId) => likedSongId.toString() !== songId);
 		await user.save();
-		// Decrement likesCount on the song
-		await Song.findByIdAndUpdate(songId, { $inc: { likesCount: -1 } });
+		if (wasLiked) {
+			await Song.findByIdAndUpdate(songId, { $inc: { likesCount: -1 } });
+		}
 		res.status(200).json(user);
 	} catch (error) {
 		console.error(error);

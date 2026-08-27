@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
+import { getErrorMessage } from "@/lib/utils";
 import { Album, Song, Stats } from "@/types";
 import toast from "react-hot-toast";
 import { create } from "zustand";
@@ -132,8 +133,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/albums");
 			set({ albums: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -144,8 +145,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get(`/albums/${id}`);
 			set({ currentAlbum: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -156,8 +157,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/songs/featured");
 			set({ featuredSongs: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -168,8 +169,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/songs/made-for-you");
 			set({ madeForYouSongs: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -180,8 +181,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/songs/trending");
 			set({ trendingSongs: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -192,8 +193,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		try {
 			const response = await axiosInstance.get("/songs/popular");
 			set({ popularSongs: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error) });
 		} finally {
 			set({ isLoading: false });
 		}

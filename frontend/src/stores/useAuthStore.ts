@@ -1,8 +1,10 @@
 import { axiosInstance } from "@/lib/axios";
+import { getErrorMessage } from "@/lib/utils";
 import { create } from "zustand";
 
 interface AuthStore {
 	isAdmin: boolean;
+	isSuperAdmin: boolean;
 	isLoading: boolean;
 	error: string | null;
 
@@ -12,6 +14,7 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>((set) => ({
 	isAdmin: false,
+	isSuperAdmin: false,
 	isLoading: false,
 	error: null,
 
@@ -19,15 +22,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.get("/admin/check");
-			set({ isAdmin: response.data.admin });
-		} catch (error: any) {
-			set({ isAdmin: false, error: error.response.data.message });
+			set({ isAdmin: response.data.admin, isSuperAdmin: response.data.superAdmin });
+		} catch (error: unknown) {
+			set({ isAdmin: false, isSuperAdmin: false, error: getErrorMessage(error, "Unable to verify admin access") });
 		} finally {
 			set({ isLoading: false });
 		}
 	},
 
 	reset: () => {
-		set({ isAdmin: false, isLoading: false, error: null });
+		set({ isAdmin: false, isSuperAdmin: false, isLoading: false, error: null });
 	},
 }));
