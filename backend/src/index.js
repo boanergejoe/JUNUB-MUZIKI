@@ -6,6 +6,7 @@ import cors from "cors";
 import fs from "fs";
 import { createServer } from "http";
 import cron from "node-cron";
+import { fileURLToPath } from "url";
 
 import "./config/env.js";
 import { initializeSocket } from "./lib/socket.js";
@@ -19,7 +20,7 @@ import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js"; // added for user playlists
 
-const __dirname = path.resolve();
+const __dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
@@ -32,6 +33,10 @@ app.use(
 		credentials: true,
 	})
 );
+
+app.get("/health", (req, res) => {
+	res.status(200).json({ status: "ok" });
+});
 
 app.use(express.json()); // to parse req.body
 app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
@@ -69,10 +74,6 @@ app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 app.use("/api/playlists", playlistRoutes); // endpoints to manage user playlists
-
-app.get("/health", (req, res) => {
-	res.status(200).json({ status: "ok" });
-});
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "../frontend/dist")));

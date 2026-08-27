@@ -1,9 +1,7 @@
 // PesaPal Payment Integration Service
 import crypto from 'crypto';
 import axios from 'axios';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import "../config/env.js";
 
 export const PESAPAL_CONSUMER_KEY = process.env.PESAPAL_CONSUMER_KEY;
 export const PESAPAL_CONSUMER_SECRET = process.env.PESAPAL_CONSUMER_SECRET;
