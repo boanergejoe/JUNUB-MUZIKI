@@ -1,37 +1,46 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { axiosInstance } from "@/lib/axios";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AuthCallbackPage = () => {
 	const { isLoaded, user } = useUser();
+	const { getToken } = useAuth();
 	const navigate = useNavigate();
 	const syncAttempted = useRef(false);
 
 	useEffect(() => {
 		const syncUser = async () => {
 			if (!isLoaded || !user || syncAttempted.current) return;
+			let destination = "/";
 
 			try {
 				syncAttempted.current = true;
+
+				const token = await getToken();
+				if (!token) throw new Error("Clerk session is not ready");
+				const authorization = { Authorization: `Bearer ${token}` };
 
 				await axiosInstance.post("/auth/callback", {
 					id: user.id,
 					firstName: user.firstName,
 					lastName: user.lastName,
 					imageUrl: user.imageUrl,
-				});
+				}, { headers: authorization });
+
+				const adminResponse = await axiosInstance.get("/admin/check", { headers: authorization });
+				destination = adminResponse.data.admin ? "/admin" : "/";
 			} catch (error) {
 				console.log("Error in auth callback", error);
 			} finally {
-				navigate("/");
+				navigate(destination, { replace: true });
 			}
 		};
 
 		syncUser();
-	}, [isLoaded, user, navigate]);
+	}, [isLoaded, user, getToken, navigate]);
 
 	return (
 		<div className='h-screen w-full bg-black flex items-center justify-center'>
