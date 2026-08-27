@@ -38,6 +38,16 @@ app.get("/health", (req, res) => {
 	res.status(200).json({ status: "ok" });
 });
 
+if (process.env.NODE_ENV === "production") {
+	const frontendDirectory = path.join(__dirname, "frontend", "dist");
+	app.use(express.static(frontendDirectory));
+	app.get("/", (req, res, next) => {
+		res.sendFile(path.join(frontendDirectory, "index.html"), (error) => {
+			if (error) next(error);
+		});
+	});
+}
+
 app.use(express.json()); // to parse req.body
 app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
 app.use(
@@ -76,9 +86,8 @@ app.use("/api/stats", statRoutes);
 app.use("/api/playlists", playlistRoutes); // endpoints to manage user playlists
 
 if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "../frontend/dist")));
 	app.get("*", (req, res) => {
-		res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
+		res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 	});
 }
 
