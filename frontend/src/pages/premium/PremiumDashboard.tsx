@@ -3,21 +3,15 @@ import { usePremiumStore } from "@/stores/usePremiumStore";
 import { axiosInstance } from "@/lib/axios";
 import { Download, Play } from "lucide-react";
 import toast from "react-hot-toast";
-
-interface PremiumSong {
-	_id: string;
-	title: string;
-	artist: string;
-	imageUrl: string;
-	audioUrl: string;
-	premiumTier: string;
-}
+import { usePlayerStore } from "@/stores/usePlayerStore";
+import { Song } from "@/types";
 
 const PremiumDashboard = () => {
 	const { isPremium, checkPremiumStatus } = usePremiumStore();
-	const [premiumSongs, setPremiumSongs] = useState<PremiumSong[]>([]);
+	const [premiumSongs, setPremiumSongs] = useState<Song[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [downloadingId, setDownloadingId] = useState<string | null>(null);
+	const { setCurrentSong } = usePlayerStore();
 
 	useEffect(() => {
 		checkPremiumStatus();
@@ -37,7 +31,15 @@ const PremiumDashboard = () => {
 		}
 	};
 
-	const handleDownload = async (song: PremiumSong) => {
+	const handlePlay = (song: Song) => {
+		if (!isPremium) {
+			toast.error("Premium subscription required to play this song");
+			return;
+		}
+		setCurrentSong(song);
+	};
+
+	const handleDownload = async (song: Song) => {
 		if (!isPremium) {
 			toast.error("You must be a premium user to download songs");
 			return;
@@ -139,7 +141,7 @@ const PremiumDashboard = () => {
 											</span>
 										</div>
 										<div className="flex gap-2">
-											<button className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+											<button onClick={() => handlePlay(song)} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
 												<Play className="h-4 w-4" />
 												Play
 											</button>

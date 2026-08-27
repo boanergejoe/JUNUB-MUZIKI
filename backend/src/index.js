@@ -42,6 +42,11 @@ app.use(
 	})
 );
 
+app.use(clerkMiddleware({
+	secretKey: process.env.CLERK_SECRET_KEY,
+	publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+}));
+
 app.get("/health", (req, res) => {
 	res.status(200).json({ status: "ok" });
 });
@@ -62,10 +67,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use(express.json()); // to parse req.body
-app.use(clerkMiddleware({
-	secretKey: process.env.CLERK_SECRET_KEY,
-	publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-}));
 app.use(
 	fileUpload({
 		useTempFiles: true,

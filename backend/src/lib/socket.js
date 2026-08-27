@@ -24,11 +24,19 @@ export const initializeSocket = (server) => {
 		socket.on("dj_add", ({ roomId, song, userId }) => {
 			if (!roomId || !song?._id || !userId) return;
 			const room = djRooms.get(roomId) || new Map();
-			const item = room.get(song._id) || { song, votes: 0, voters: [] };
+			const item = room.get(song._id) || { song, votes: 0, voters: [], addedBy: userId };
 			if (!item.voters.includes(userId)) item.voters.push(userId);
 			item.votes = item.voters.length;
 			room.set(song._id, item);
 			djRooms.set(roomId, room);
+			io.to(`dj:${roomId}`).emit("dj_state", Array.from(room.values()).sort((a, b) => b.votes - a.votes));
+		});
+
+		socket.on("dj_remove", ({ roomId, songId, userId }) => {
+			const room = djRooms.get(roomId);
+			const item = room?.get(songId);
+			if (!room || !item || item.addedBy !== userId) return;
+			room.delete(songId);
 			io.to(`dj:${roomId}`).emit("dj_state", Array.from(room.values()).sort((a, b) => b.votes - a.votes));
 		});
 

@@ -2,12 +2,21 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { Song } from "@/types";
 import { useChatStore } from "./useChatStore";
+import { usePremiumStore } from "./usePremiumStore";
 
 // ensure the current user is logged in before allowing playback actions
 const ensureLoggedIn = (): boolean => {
 	const socket = useChatStore.getState().socket;
 	if (!socket.auth) {
 		toast.error("Login and listen to your favorite song");
+		return false;
+	}
+	return true;
+};
+
+const canPlaySong = (song: Song): boolean => {
+	if (song.isPremium && !usePremiumStore.getState().isPremium) {
+		toast.error("Premium subscription required to play this song");
 		return false;
 	}
 	return true;
@@ -111,6 +120,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		if (!ensureLoggedIn()) return;
 
 		const song = songs[startIndex];
+		if (!song || !canPlaySong(song)) return;
 		const socket = useChatStore.getState().socket;
 		// update activity since user is authenticated
 		socket.emit("update_activity", {
@@ -129,6 +139,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	setCurrentSong: (song: Song | null) => {
 		if (!song) return;
 		if (!ensureLoggedIn()) return;
+		if (!canPlaySong(song)) return;
 
 		const socket = useChatStore.getState().socket;
 		socket.emit("update_activity", {
@@ -187,6 +198,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
 		if (nextIndex < queue.length) {
 			const nextSong = queue[nextIndex];
+			if (!canPlaySong(nextSong)) {
+				set({ isPlaying: false });
+				return;
+			}
 			updateActivityPlaying(nextSong);
 			set({
 				currentSong: nextSong,
@@ -198,6 +213,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 			// wrap around
 			const wrapIndex = getWrapIndex(shuffle, queue.length, true);
 			const nextSong = queue[wrapIndex];
+			if (!canPlaySong(nextSong)) {
+				set({ isPlaying: false });
+				return;
+			}
 			updateActivityPlaying(nextSong);
 			set({
 				currentSong: nextSong,
@@ -223,6 +242,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
 		if (prevIndex >= 0) {
 			const prevSong = queue[prevIndex];
+			if (!canPlaySong(prevSong)) {
+				set({ isPlaying: false });
+				return;
+			}
 			updateActivityPlaying(prevSong);
 			set({
 				currentSong: prevSong,
@@ -232,6 +255,10 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		} else if (repeat === "all" && queue.length > 0) {
 			const wrapIndex = getWrapIndex(shuffle, queue.length, false);
 			const prevSong = queue[wrapIndex];
+			if (!canPlaySong(prevSong)) {
+				set({ isPlaying: false });
+				return;
+			}
 			updateActivityPlaying(prevSong);
 			set({
 				currentSong: prevSong,

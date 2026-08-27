@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
-import { ArrowDown, ArrowUp, Headphones, Play } from "lucide-react";
+import { ArrowDown, ArrowUp, Headphones, Play, Trash2 } from "lucide-react";
 import { useChatStore } from "@/stores/useChatStore";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import { Button } from "@/components/ui/button";
 import { Song } from "@/types";
 
-type DJItem = { song: Song; votes: number; voters: string[] };
+type DJItem = { song: Song; votes: number; voters: string[]; addedBy: string };
 
 const DJPage = () => {
 	const { userId } = useAuth();
@@ -27,6 +27,7 @@ const DJPage = () => {
 	}, [fetchSongs, roomId, socket, userId]);
 
 	const addSong = (song: Song) => socket?.emit("dj_add", { roomId, song, userId });
+	const removeSong = (songId: string) => socket?.emit("dj_remove", { roomId, songId, userId });
 	const vote = (songId: string, direction: 1 | -1) => socket?.emit("dj_vote", { roomId, songId, userId, direction });
 
 	return (
@@ -38,11 +39,11 @@ const DJPage = () => {
 					<p className="mt-2 text-zinc-300">Everyone in the room can add a track and vote the queue into shape.</p>
 				</header>
 				<section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+					<div className="min-h-0 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
 						<h2 className="mb-4 text-xl font-semibold">Room queue</h2>
-						<div className="space-y-3">{queue.length === 0 && <p className="text-zinc-500">Add the first track to start the room.</p>}{queue.map((item) => <div key={item.song._id} className="flex items-center gap-3 rounded-xl bg-zinc-800 p-3"><img src={item.song.imageUrl} alt="" className="size-12 rounded object-cover" /><div className="min-w-0 flex-1"><p className="truncate font-medium">{item.song.title}</p><p className="truncate text-sm text-zinc-400">{item.song.artist} · {item.votes} votes</p></div><Button size="icon" variant="ghost" onClick={() => vote(item.song._id, 1)} aria-label="Upvote"><ArrowUp /></Button><Button size="icon" variant="ghost" onClick={() => vote(item.song._id, -1)} aria-label="Downvote"><ArrowDown /></Button><Button size="icon" onClick={() => playAlbum(queue.map((entry) => entry.song), queue.findIndex((entry) => entry.song._id === item.song._id))} aria-label="Play"><Play /></Button></div>)}</div>
+						<div className="max-h-[calc(100dvh-18rem)] min-h-[12rem] overflow-y-auto overscroll-contain pr-2 [scrollbar-color:#10b981_#27272a] [scrollbar-width:thin]"><div className="space-y-3">{queue.length === 0 && <p className="text-zinc-500">Add the first track to start the room.</p>}{queue.map((item) => <div key={item.song._id} className="flex items-center gap-3 rounded-xl bg-zinc-800 p-3"><img src={item.song.imageUrl} alt="" className="size-12 rounded object-cover" /><div className="min-w-0 flex-1"><p className="break-words font-medium">{item.song.title}</p><p className="break-words text-sm text-zinc-400">{item.song.artist} · {item.votes} votes</p></div><Button size="icon" variant="ghost" onClick={() => vote(item.song._id, 1)} aria-label="Upvote"><ArrowUp /></Button><Button size="icon" variant="ghost" onClick={() => vote(item.song._id, -1)} aria-label="Downvote"><ArrowDown /></Button><Button size="icon" onClick={() => playAlbum(queue.map((entry) => entry.song), queue.findIndex((entry) => entry.song._id === item.song._id))} aria-label="Play"><Play /></Button>{item.addedBy === userId && <Button size="icon" variant="ghost" onClick={() => removeSong(item.song._id)} aria-label="Remove from room"><Trash2 /></Button>}</div>)}</div></div>
 					</div>
-					<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><h2 className="mb-4 text-xl font-semibold">Add a track</h2><div className="space-y-2">{songs.slice(0, 12).map((song) => <button key={song._id} onClick={() => addSong(song)} className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-zinc-800"><img src={song.imageUrl} alt="" className="size-10 rounded object-cover" /><span className="min-w-0 flex-1 truncate">{song.title}<small className="block text-zinc-500">{song.artist}</small></span><span className="text-emerald-400">+</span></button>)}</div></div>
+					<div className="min-h-0 rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><h2 className="mb-4 text-xl font-semibold">Add a track</h2><div className="max-h-[calc(100dvh-18rem)] min-h-[12rem] overflow-y-auto overscroll-contain pr-2 [scrollbar-color:#10b981_#27272a] [scrollbar-width:thin]"><div className="space-y-2">{songs.slice(0, 12).map((song) => <button key={song._id} onClick={() => addSong(song)} className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-zinc-800"><img src={song.imageUrl} alt="" className="size-10 shrink-0 rounded object-cover" /><span className="min-w-0 flex-1 break-words text-left">{song.title}<small className="block break-words text-zinc-500">{song.artist}</small></span><span className="text-emerald-400">+</span></button>)}</div></div></div>
 				</section>
 			</div>
 		</div>
