@@ -30,7 +30,7 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 			<div className="flex items-center gap-4 justify-end">
 				{isLoaded && isSignedIn && isAdmin && (
 					<Link
-						to="/admin"
+						to="/admin/dashboard"
 						aria-label="Open admin dashboard"
 						className={cn(
 							buttonVariants({ variant: "outline" }),

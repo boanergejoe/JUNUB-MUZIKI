@@ -14,7 +14,6 @@ const AuthCallbackPage = () => {
 	useEffect(() => {
 		const syncUser = async () => {
 			if (!isLoaded || !user || syncAttempted.current) return;
-			let destination = "/";
 
 			try {
 				syncAttempted.current = true;
@@ -30,12 +29,10 @@ const AuthCallbackPage = () => {
 					imageUrl: user.imageUrl,
 				}, { headers: authorization });
 
-				const adminResponse = await axiosInstance.get("/admin/check", { headers: authorization });
-				destination = adminResponse.data.admin ? "/admin" : "/";
 			} catch (error) {
 				console.log("Error in auth callback", error);
 			} finally {
-				navigate(destination, { replace: true });
+				navigate("/", { replace: true });
 			}
 		};
 
