@@ -48,27 +48,30 @@ const SearchPage = () => {
     }, [query, genre]);
 
     return (
-        <div className="flex h-full min-h-0 flex-col p-4 sm:p-6">
+        <div className="flex h-full min-h-0 min-w-0 flex-col p-4 sm:p-6">
             <h1 className="text-3xl font-bold mb-6">
                 {genre ? `Genre: ${genre}` : query === "*" ? "Browse all songs" : `Search Results for "${query}"`}
             </h1>
 
-            <Tabs defaultValue="songs" className="w-full">
+            <Tabs defaultValue="songs" className="min-w-0 w-full">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="songs">Songs</TabsTrigger>
                     <TabsTrigger value="albums">Albums</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="songs">
-                    <ScrollArea className="min-h-0 flex-1">
-                        <SectionGrid songs={songs} title="Songs" isLoading={isLoading} showAll={false} />
-                        <Footer />
+                <TabsContent value="songs" className="min-w-0 max-w-full">
+                    <ScrollArea className="min-h-0 w-full max-w-full flex-1">
+                        <div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] overflow-x-hidden">
+                            <SectionGrid songs={songs} title="Songs" isLoading={isLoading} showAll={false} />
+                            <Footer />
+                        </div>
                     </ScrollArea>
                 </TabsContent>
 
-                <TabsContent value="albums">
-                    <ScrollArea className="min-h-0 flex-1">
-                        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                <TabsContent value="albums" className="min-w-0 max-w-full">
+                    <ScrollArea className="min-h-0 w-full max-w-full flex-1">
+                        <div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] overflow-x-hidden">
+                            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
                             {albums.map((album) => (
                                 <div
                                     key={album._id}
@@ -86,8 +89,9 @@ const SearchPage = () => {
                                     <p className="text-sm text-zinc-400 truncate">{album.artist}</p>
                                 </div>
                             ))}
+                            </div>
+                            <Footer />
                         </div>
-                        <Footer />
                     </ScrollArea>
                 </TabsContent>
             </Tabs>

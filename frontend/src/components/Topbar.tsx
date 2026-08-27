@@ -1,6 +1,6 @@
 
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/clerk-react";
-import { LayoutDashboardIcon } from "lucide-react";
+import { Home, LayoutDashboardIcon, Search, SlidersHorizontal, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import SignInOAuthButtons from "./SignInOAuthButtons";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -11,23 +11,30 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 	const { isAdmin } = useAuthStore();
 	const { isLoaded, isSignedIn } = useAuth();
 	return (
-		<div
-			className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:p-4 sticky top-0 bg-zinc-900/90 backdrop-blur-md z-10"
-		>
-			<div className="flex gap-2 items-center">
-				<img src="/Junub%20Muziki.png" className="size-8 rounded-md object-cover" alt="Junub Muziki logo" />
-				<span className="font-semibold tracking-wide">Junub Muziki</span>
-			</div>
-			<div className="flex-1 flex items-center justify-center">
+		<div className="sticky top-0 z-10 flex items-center gap-2 bg-black px-3 py-3 backdrop-blur-md sm:gap-3 sm:px-5">
+			<Link to="/" aria-label="Junub Muziki home" className="hidden shrink-0 sm:block">
+				<img src="/Junub%20Muziki.png" className="size-10 rounded-full object-cover" alt="Junub Muziki logo" />
+			</Link>
+			<Link to="/" aria-label="Home" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700">
+				<Home className="size-5" />
+			</Link>
+			<div className="relative flex min-w-0 flex-1 items-center sm:max-w-[570px]">
+				<Search className="absolute left-3 size-5 text-zinc-400" />
 				<input
 					type="text"
-					placeholder="Search songs or artists..."
-					className="w-full sm:w-96 px-3 py-2 rounded bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+					placeholder="What do you want to play?"
+					className="h-11 w-full rounded-full border border-transparent bg-zinc-800 pl-11 pr-11 text-sm text-white outline-none transition focus:border-zinc-500 focus:bg-zinc-700"
 					value={search}
 					onChange={e => setSearch(e.target.value)}
 				/>
+				<SlidersHorizontal className="absolute right-3 size-5 text-zinc-400" />
 			</div>
-			<div className="flex items-center gap-4 justify-end">
+			<div className="ml-auto flex items-center gap-3">
+				<div className="hidden items-center gap-4 border-r border-zinc-700 pr-4 text-sm font-semibold text-zinc-300 lg:flex">
+					<Link to="/premium" className="hover:text-white">Premium</Link>
+					<Link to="/settings" className="hover:text-white">Support</Link>
+					<Link to="/songs" className="hover:text-white">Download</Link>
+				</div>
 				{isLoaded && isSignedIn && isAdmin && (
 					<Link
 						to="/admin/dashboard"
@@ -45,8 +52,9 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 					<SignInOAuthButtons />
 				</SignedOut>
 				<SignedIn>
-					<UserButton />
+					<UserButton appearance={{ elements: { userButtonAvatarBox: "size-9" } }} />
 				</SignedIn>
+				{!isSignedIn && <UserRound className="hidden size-5 text-zinc-400 sm:block" />}
 			</div>
 		</div>
 	);

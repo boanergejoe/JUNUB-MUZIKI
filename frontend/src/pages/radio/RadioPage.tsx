@@ -35,7 +35,7 @@ const RadioPage = () => {
     ];
 
     return (
-        <div className="min-h-screen max-h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-[#1db954] scrollbar-track-zinc-900 bg-gradient-to-b from-[#0b1220] via-[#111827] to-[#0f172a] px-4 py-8 sm:px-6">
+        <div className="min-h-screen max-h-screen overflow-y-auto scrollbar-hidden bg-gradient-to-b from-[#0b1220] via-[#111827] to-[#0f172a] px-4 py-8 sm:px-6">
             <div className="mx-auto max-w-6xl space-y-10">
                 <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950/90 p-8 shadow-2xl backdrop-blur-xl">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -53,7 +53,7 @@ const RadioPage = () => {
                     </div>
                 </div>
 
-                <ScrollArea className="max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[2rem] border border-zinc-800 bg-zinc-950/90 p-4 scrollbar-thin scrollbar-thumb-[#1db954] scrollbar-track-zinc-900">
+                <ScrollArea className="max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[2rem] border border-zinc-800 bg-zinc-950/90 p-4 scrollbar-hidden">
                     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
                         <div className="space-y-6">
                             <div className="rounded-[2rem] border border-[#1db954]/30 bg-[#10251a] p-6 shadow-lg">

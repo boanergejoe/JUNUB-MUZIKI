@@ -18,7 +18,7 @@ const SongsPage = () => {
     const filteredSongs = songs; // backend already filtered if "search" is provided
 
     return (
-        <div className="flex h-full min-h-0 flex-col p-2 sm:p-4">
+        <div className="flex h-full min-h-0 min-w-0 flex-col p-2 sm:p-4">
             <h1 className="text-2xl font-bold mb-4">All Songs</h1>
             <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
                 <input
@@ -29,9 +29,11 @@ const SongsPage = () => {
                     onChange={e => setSearch(e.target.value)}
                 />
             </div>
-            <ScrollArea className="min-h-0 flex-1">
-                <SectionGrid songs={filteredSongs} title="Songs" isLoading={isLoading} showAll={false} />
-                <Footer />
+            <ScrollArea className="min-h-0 min-w-0 w-full max-w-full flex-1">
+                <div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] overflow-x-hidden">
+                    <SectionGrid songs={filteredSongs} title="Songs" isLoading={isLoading} showAll={false} />
+                    <Footer />
+                </div>
             </ScrollArea>
         </div>
     );

@@ -2,7 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatStore } from "@/stores/useChatStore";
 import { useUser } from "@clerk/clerk-react";
-import { HeadphonesIcon, Music, Users } from "lucide-react";
+import { HeadphonesIcon, Music, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect } from "react";
 
 const FriendsActivity = () => {
@@ -14,15 +15,14 @@ const FriendsActivity = () => {
 	}, [fetchUsers, user]);
 
 	return (
-		<div className='h-full bg-zinc-900 rounded-lg flex flex-col'>
-			<div className='p-4 flex justify-between items-center border-b border-zinc-800'>
-				<div className='flex items-center gap-2'>
-					<Users className='size-5 shrink-0' />
-					<h2 className='font-semibold'>What they're listening to</h2>
-				</div>
+		<div className='flex h-full min-h-0 flex-col rounded-lg bg-zinc-900'>
+			<div className='flex items-center justify-between border-b border-zinc-800 p-4'>
+				<h2 className='font-semibold'>Friend activity</h2>
+				<Search className='size-5 text-zinc-400' />
 			</div>
 
 			{!user && <LoginPrompt />}
+			{user && users.length === 0 && <EmptyPlayPrompt />}
 
 			<ScrollArea className='flex-1'>
 				<div className='p-4 space-y-4'>
@@ -96,5 +96,12 @@ const LoginPrompt = () => (
 			<h3 className='text-lg font-semibold text-white'>See What Friends Are Playing</h3>
 			<p className='text-sm text-zinc-400'>Login to discover what music your friends are enjoying right now</p>
 		</div>
+	</div>
+);
+
+const EmptyPlayPrompt = () => (
+	<div className='flex h-full flex-col items-center justify-center p-6 text-center'>
+		<h3 className='max-w-[190px] text-2xl font-bold leading-tight'>Find something to play</h3>
+		<Link to='/search' className='mt-6 rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-black hover:bg-emerald-400'>Search</Link>
 	</div>
 );

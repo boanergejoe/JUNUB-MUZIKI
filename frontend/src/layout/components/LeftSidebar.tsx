@@ -6,7 +6,7 @@ import { useMusicStore } from "@/stores/useMusicStore";
 import { useChatStore } from "@/stores/useChatStore";
 import { usePlaylistStore } from "@/stores/usePlaylistStore"; // show user playlists in sidebar
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle, Settings, Radio } from "lucide-react";
+import { HomeIcon, Library, MessageCircle, Plus, Settings, Radio } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
@@ -27,7 +27,7 @@ const LeftSidebar = () => {
 
 
 	return (
-		<div className='h-full flex flex-col gap-2'>
+		<div className='flex h-full min-h-0 flex-col gap-2'>
 			{/* Navigation menu */}
 
 			<div className='rounded-lg bg-zinc-900 p-4'>
@@ -107,19 +107,31 @@ const LeftSidebar = () => {
 			</div>
 
 			{/* Library section */}
-			<div className='flex-1 rounded-lg bg-zinc-900 p-4 flex flex-col'>
-				<div className='flex items-center justify-between mb-4'>
-					<div className='flex items-center text-white px-2'>
+			<div className='flex min-h-0 flex-1 flex-col rounded-lg bg-zinc-900 p-3'>
+				<div className='mb-3 flex items-center justify-between px-2'>
+					<div className='flex items-center text-white'>
 						<Library className='size-5 mr-2' />
-						<span className='hidden md:inline'>Library</span>
+						<span className='font-semibold'>Your Library</span>
 					</div>
-					<span className='text-xs text-zinc-400 hidden md:inline'>{playlists.length + 2} items</span>
+					<Link to='/playlists' aria-label='Create playlist' className='flex size-10 items-center justify-center rounded-full bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white'>
+						<Plus className='size-5' />
+					</Link>
 				</div>
 
 				{/* quick links: liked songs and all songs */}
-				<ScrollArea className='flex-1'>
+				<ScrollArea className='library-scrollbar flex-1'>
 					<div className='space-y-3 pr-3'>
 						{/* Quick links section */}
+						<div className='space-y-2 rounded-lg bg-zinc-800/70 p-4'>
+							<p className='font-semibold text-white'>Create your first playlist</p>
+							<p className='mt-2 text-sm text-zinc-300'>It's easy, we'll help you</p>
+							<Link to='/playlists' className='mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-black hover:bg-zinc-200'>Create playlist</Link>
+						</div>
+						<div className='space-y-2 rounded-lg bg-zinc-800/70 p-4'>
+							<p className='font-semibold text-white'>Let's find some podcasts to follow</p>
+							<p className='mt-2 text-sm text-zinc-300'>We'll keep you updated on new episodes</p>
+							<Link to='/radio' className='mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-black hover:bg-zinc-200'>Browse podcasts</Link>
+						</div>
 						<div className='space-y-2'>
 							<Link 
 								to='/liked' 

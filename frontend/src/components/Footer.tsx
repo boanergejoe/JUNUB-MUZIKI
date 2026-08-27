@@ -30,13 +30,13 @@ const Footer = () => {
 
     return (
         <>
-        <footer className='bg-black text-gray-400 py-8 px-4'>
-            <div className='max-w-6xl mx-auto'>
+        <footer className='footer-shell mt-6 w-full min-w-0 overflow-hidden border-t border-zinc-800 bg-black px-3 py-4 text-gray-400 sm:px-5'>
+            <div className='footer-inner mx-auto w-full min-w-0 max-w-6xl'>
                 {/* Footer Links Grid - 4 columns like Spotify */}
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8'>
-                    <div>
-                        <h3 className='text-white font-semibold mb-4'>Explore</h3>
-                        <ul className='space-y-2 text-sm'>
+                <div className='footer-links-grid mb-4 grid min-w-0 grid-cols-[repeat(4,minmax(0,1fr))] gap-x-2 sm:gap-x-5'>
+                    <div className='min-w-0'>
+                        <h3 className='mb-2 text-xs font-semibold text-white sm:text-sm'>Explore</h3>
+                        <ul className='space-y-1 break-words text-[10px] sm:text-sm'>
                             <li><Link to='/' className='hover:text-white hover:underline'>Home</Link></li>
                             <li><Link to='/radio' className='hover:text-white hover:underline'>Radio</Link></li>
                             <li><Link to='/songs' className='hover:text-white hover:underline'>Songs</Link></li>
@@ -44,9 +44,9 @@ const Footer = () => {
                             <li><Link to='/dj' className='hover:text-white hover:underline'>Collaborative DJ</Link></li>
                         </ul>
                     </div>
-                    <div>
-                        <h3 className='text-white font-semibold mb-4'>Premium</h3>
-                        <ul className='space-y-2 text-sm'>
+                    <div className='min-w-0'>
+                        <h3 className='mb-2 text-xs font-semibold text-white sm:text-sm'>Premium</h3>
+                        <ul className='space-y-1 break-words text-[10px] sm:text-sm'>
                             <li><Link to='/premium' className='hover:text-white hover:underline'>Premium overview</Link></li>
                             <li><Link to='/premium' className='hover:text-white hover:underline'>Individual plan</Link></li>
                             <li><Link to='/premium' className='hover:text-white hover:underline'>Duo plan</Link></li>
@@ -54,9 +54,9 @@ const Footer = () => {
                             <li><Link to='/premium' className='hover:text-white hover:underline'>Student plan</Link></li>
                         </ul>
                     </div>
-                    <div>
-                        <h3 className='text-white font-semibold mb-4'>Support</h3>
-                        <ul className='space-y-2 text-sm'>
+                    <div className='min-w-0'>
+                        <h3 className='mb-2 text-xs font-semibold text-white sm:text-sm'>Support</h3>
+                        <ul className='space-y-1 break-words text-[10px] sm:text-sm'>
                             <li><Link to='/settings' className='hover:text-white hover:underline'>Account settings</Link></li>
                             <li><Link to='/liked' className='hover:text-white hover:underline'>Liked songs</Link></li>
                             <li><button type="button" onClick={() => setSupportOpen(true)} className='hover:text-white hover:underline'>Help chat</button></li>
@@ -64,9 +64,9 @@ const Footer = () => {
                             <li><Link to='/admin' className='hover:text-white hover:underline'>Admin</Link></li>
                         </ul>
                     </div>
-                    <div>
-                        <h3 className='text-white font-semibold mb-4'>Legal</h3>
-                        <ul className='space-y-2 text-sm'>
+                    <div className='min-w-0'>
+                        <h3 className='mb-2 text-xs font-semibold text-white sm:text-sm'>Legal</h3>
+                        <ul className='space-y-1 break-words text-[10px] sm:text-sm'>
                             <li><Link to='/settings' className='hover:text-white hover:underline'>Privacy policy</Link></li>
                             <li><Link to='/settings' className='hover:text-white hover:underline'>Terms of service</Link></li>
                             <li><Link to='/settings' className='hover:text-white hover:underline'>Cookie preferences</Link></li>
@@ -76,7 +76,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className='flex justify-center space-x-6 mb-8'>
+                <div className='mb-3 flex justify-center gap-4'>
                     <a href='https://instagram.com' target='_blank' rel='noopener noreferrer' title='Instagram' aria-label='Instagram' className='text-gray-400 hover:text-white transition-colors'>
                         <Instagram className='h-6 w-6' />
                     </a>
@@ -88,11 +88,11 @@ const Footer = () => {
                     </a>
                 </div>
 
-                <div className='border-t border-gray-700 pt-8'>
-                    <div className='text-center mb-4'>
-                        <span className='text-sm'>© 2024 Junub Muziki. All rights reserved.</span>
+                <div className='border-t border-zinc-800 pt-4'>
+                    <div className='mb-3 text-center'>
+                        <span className='text-[11px]'>© 2024 Junub Muziki. All rights reserved.</span>
                     </div>
-                    <div className='flex flex-wrap justify-center items-center gap-4 text-sm'>
+                    <div className='flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[11px]'>
                         <Link to='/settings' className='hover:text-white hover:underline'>Privacy policy</Link>
                         <Link to='/settings' className='hover:text-white hover:underline'>Terms</Link>
                         <Link to='/settings' className='hover:text-white hover:underline'>Cookies</Link>

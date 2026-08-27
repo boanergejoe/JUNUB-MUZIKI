@@ -67,3 +67,70 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+	@layer utilities {
+		.footer-inner {
+			container-type: inline-size;
+		}
+
+		.library-scrollbar [data-radix-scroll-area-scrollbar] {
+			background: rgba(24, 24, 27, 0.72);
+			border-left: 1px solid rgba(113, 113, 122, 0.3);
+			padding: 2px;
+			width: 9px;
+		}
+
+		.library-scrollbar [data-radix-scroll-area-thumb] {
+			background: #71717a;
+			border-radius: 999px;
+		}
+
+		.scrollbar-visible {
+			scrollbar-width: thin;
+			scrollbar-color: #71717a transparent;
+		}
+
+		.scrollbar-visible::-webkit-scrollbar {
+			height: 8px;
+			width: 8px;
+		}
+
+		.scrollbar-visible::-webkit-scrollbar-track {
+			background: transparent;
+		}
+
+		.scrollbar-visible::-webkit-scrollbar-thumb {
+			background: #71717a;
+			border-radius: 999px;
+		}
+
+		.horizontal-scrollbar {
+			scrollbar-width: thin;
+			scrollbar-color: #a1a1aa rgba(39, 39, 42, 0.55);
+		}
+
+		.scrollbar-hidden {
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+
+		.scrollbar-hidden::-webkit-scrollbar {
+			display: none;
+			height: 0;
+			width: 0;
+		}
+
+		.horizontal-scrollbar::-webkit-scrollbar {
+			height: 7px;
+		}
+
+		.horizontal-scrollbar::-webkit-scrollbar-track {
+			background: rgba(39, 39, 42, 0.55);
+			border-radius: 999px;
+		}
+
+		.horizontal-scrollbar::-webkit-scrollbar-thumb {
+			background: #a1a1aa;
+			border-radius: 999px;
+		}
+	}

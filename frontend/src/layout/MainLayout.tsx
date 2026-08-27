@@ -28,7 +28,7 @@ const MainLayout = () => {
 				<AudioPlayer />
 				{!isMobile && (
 					<>
-						<ResizablePanel id="left" order={1} defaultSize={20} minSize={10} maxSize={30}>
+						<ResizablePanel id="left" order={1} defaultSize={20} minSize={10} maxSize={30} className="h-full min-h-0">
 							<LeftSidebar />
 						</ResizablePanel>
 						<ResizableHandle className='w-2 bg-black rounded-lg transition-colors' />
@@ -36,7 +36,7 @@ const MainLayout = () => {
 				)}
 
 				{/* Main content */}
-				<ResizablePanel id="main" order={2} defaultSize={isMobile ? 100 : 60}>
+				<ResizablePanel id="main" order={2} defaultSize={isMobile ? 100 : 60} className="h-full min-h-0">
 					<Outlet />
 				</ResizablePanel>
 
@@ -45,7 +45,7 @@ const MainLayout = () => {
 						<ResizableHandle className='w-2 bg-black rounded-lg transition-colors' />
 
 						{/* right sidebar */}
-						<ResizablePanel id="right" order={3} defaultSize={20} minSize={0} maxSize={25} collapsedSize={0}>
+						<ResizablePanel id="right" order={3} defaultSize={20} minSize={0} maxSize={25} collapsedSize={0} className="h-full min-h-0">
 							<FriendsActivity />
 						</ResizablePanel>
 					</>

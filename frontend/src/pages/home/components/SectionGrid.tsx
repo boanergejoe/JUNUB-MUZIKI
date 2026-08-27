@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useNavigate, Link } from "react-router-dom";
+import HorizontalScroll from "@/components/ui/horizontal-scroll";
 
 type SectionGridProps = {
 	title: string;
@@ -14,8 +15,9 @@ type SectionGridProps = {
 	isLoading: boolean;
 	showAll?: boolean;
 	showAllLabel?: string;
+	compact?: boolean;
 };
-const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }: SectionGridProps) => {
+const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel, compact = false }: SectionGridProps) => {
 	const navigate = useNavigate();
 	const { likedSongs, likeSong, unlikeSong } = useUserStore();
 
@@ -31,18 +33,18 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }:
 						className="text-sm text-zinc-400 hover:text-white"
 						onClick={() => navigate(showAll === true ? "/songs" : showAll)}
 					>
-						{showAllLabel || "Show all"}
+						{showAllLabel || "View all"}
 					</Button>
 				)}
 			</div>
 
-			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+			<HorizontalScroll label={title} className="gap-3 sm:gap-4">
 				{songs.map((song) => {
 					const isLiked = likedSongs.some((likedSong) => likedSong._id === song._id);
 					return (
 						<div
 							key={song._id}
-							className="bg-zinc-800/40 p-3 sm:p-4 rounded-md hover:bg-zinc-700/40 transition-all group cursor-pointer"
+							className={`group cursor-pointer rounded-md bg-zinc-800/40 p-2.5 transition-all hover:bg-zinc-700/40 sm:p-4 ${compact ? "min-w-[145px] sm:min-w-[175px]" : "min-w-[160px] sm:min-w-[210px]"}`}
 						>
 							<div className="relative mb-3 sm:mb-4">
 								<div className="aspect-square rounded-md shadow-lg overflow-hidden">
@@ -89,7 +91,7 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }:
 						</div>
 					);
 				})}
-			</div>
+			</HorizontalScroll>
 		</div>
 	);
 };

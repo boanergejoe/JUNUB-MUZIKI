@@ -1,6 +1,8 @@
 import { useMusicStore } from "@/stores/useMusicStore";
 import FeaturedGridSkeleton from "@/components/skeletons/FeaturedGridSkeleton";
 import PlayButton from "./PlayButton";
+import HorizontalScroll from "@/components/ui/horizontal-scroll";
+import { Link } from "react-router-dom";
 
 const FeaturedSection = () => {
 	const { isLoading, featuredSongs, error } = useMusicStore();
@@ -10,17 +12,22 @@ const FeaturedSection = () => {
 	if (error) return <p className='text-red-500 mb-4 text-lg'>{error}</p>;
 
 	return (
-		<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8'>
+		<div className='mb-8'>
+			<div className='mb-3 flex items-center justify-between'>
+				<h2 className='text-2xl font-bold'>Featured music</h2>
+				<Link to='/songs' className='text-sm font-semibold text-zinc-400 hover:text-white'>View all</Link>
+			</div>
+		<HorizontalScroll label='featured songs'>
 			{featuredSongs.map((song) => (
 				<div
 					key={song._id}
-					className='flex items-center bg-zinc-800/50 rounded-md overflow-hidden
+					className='flex min-w-[240px] snap-start items-center overflow-hidden rounded-md bg-zinc-800/50
          hover:bg-zinc-700/50 transition-colors group cursor-pointer relative'
 				>
 					<img
 						src={song.imageUrl}
 						alt={song.title}
-						className='w-16 sm:w-20 h-16 sm:h-20 object-cover flex-shrink-0'
+						className='size-16 shrink-0 object-cover sm:size-20'
 					/>
 					<div className='flex-1 p-4'>
 						<p className='font-medium truncate'>{song.title}</p>
@@ -29,6 +36,7 @@ const FeaturedSection = () => {
 					<PlayButton song={song} />
 				</div>
 			))}
+		</HorizontalScroll>
 		</div>
 	);
 };
