@@ -19,6 +19,12 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js"; // added for user playlists
+import {
+	getFeaturedSongs,
+	getMadeForYouSongs,
+	getTrendingSongs,
+	getMostPopularSongs,
+} from "./controller/song.controller.js";
 
 const __dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const app = express();
@@ -37,6 +43,11 @@ app.use(
 app.get("/health", (req, res) => {
 	res.status(200).json({ status: "ok" });
 });
+
+app.get("/api/songs/featured", getFeaturedSongs);
+app.get("/api/songs/made-for-you", getMadeForYouSongs);
+app.get("/api/songs/trending", getTrendingSongs);
+app.get("/api/songs/popular", getMostPopularSongs);
 
 if (process.env.NODE_ENV === "production") {
 	const frontendDirectory = path.join(__dirname, "frontend", "dist");
@@ -72,6 +83,11 @@ cron.schedule("0 * * * *", () => {
 			}
 			for (const file of files) {
 				fs.unlink(path.join(tempDir, file), (err) => { });
+
+		app.get("/api/songs/featured", getFeaturedSongs);
+		app.get("/api/songs/made-for-you", getMadeForYouSongs);
+		app.get("/api/songs/trending", getTrendingSongs);
+		app.get("/api/songs/popular", getMostPopularSongs);
 			}
 		});
 	}
