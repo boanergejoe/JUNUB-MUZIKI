@@ -108,6 +108,9 @@ export const updateSong = async (req, res, next) => {
 
 export const createAlbum = async (req, res, next) => {
 	try {
+		if (!req.files?.imageFile) {
+			return res.status(400).json({ message: "Please upload album artwork" });
+		}
 		const { title, artist, releaseYear, genre } = req.body;
 		const { imageFile } = req.files;
 

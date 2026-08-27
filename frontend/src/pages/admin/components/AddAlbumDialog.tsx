@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { axiosInstance } from "@/lib/axios";
+import { useMusicStore } from "@/stores/useMusicStore";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -46,6 +47,9 @@ const AddAlbumDialog = () => {
 		setIsLoading(true);
 
 		try {
+			if (!newAlbum.title.trim() || !newAlbum.artist.trim()) {
+				return toast.error("Album title and artist are required");
+			}
 			if (!imageFile) {
 				return toast.error("Please upload an image");
 			}
@@ -62,6 +66,7 @@ const AddAlbumDialog = () => {
 					"Content-Type": "multipart/form-data",
 				},
 			});
+			await useMusicStore.getState().fetchAlbums();
 
 			setNewAlbum({
 				title: "",

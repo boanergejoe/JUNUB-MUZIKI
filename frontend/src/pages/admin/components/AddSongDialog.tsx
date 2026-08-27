@@ -60,6 +60,9 @@ const AddSongDialog = () => {
 		setIsLoading(true);
 
 		try {
+			if (!newSong.title.trim() || !newSong.artist.trim()) {
+				return toast.error("Title and artist are required");
+			}
 			if (!files.audio || !files.image) {
 				return toast.error("Please upload both audio and image files");
 			}
@@ -68,7 +71,9 @@ const AddSongDialog = () => {
 
 			formData.append("title", newSong.title);
 			formData.append("artist", newSong.artist);
-					formData.append("genre", newSong.genre);
+			formData.append("genre", newSong.genre);
+			formData.append("duration", newSong.duration);
+			formData.append("isPremium", String(newSong.isPremium));
 			if (newSong.premiumTier) {
 				formData.append("premiumTier", newSong.premiumTier);
 			}
