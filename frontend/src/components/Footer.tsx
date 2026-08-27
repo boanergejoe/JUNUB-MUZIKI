@@ -1,8 +1,35 @@
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FormEvent, useState } from "react";
+import toast from "react-hot-toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+
+const SUPPORT_EMAIL = "boanergejoe4@gmail.com";
 
 const Footer = () => {
+    const [supportOpen, setSupportOpen] = useState(false);
+    const [supportForm, setSupportForm] = useState({ name: "", email: "", message: "" });
+
+    const handleSupportSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const subject = `Junub Muziki support request from ${supportForm.name}`;
+        const body = `Name: ${supportForm.name}\nEmail: ${supportForm.email}\n\n${supportForm.message}`;
+        window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        setSupportOpen(false);
+        setSupportForm({ name: "", email: "", message: "" });
+        toast.success("Your request has been successfully sent, wait for the respond shortly. Thanks");
+    };
+
     return (
+        <>
         <footer className='bg-black text-gray-400 py-8 px-4'>
             <div className='max-w-6xl mx-auto'>
                 {/* Footer Links Grid - 4 columns like Spotify */}
@@ -32,7 +59,7 @@ const Footer = () => {
                         <ul className='space-y-2 text-sm'>
                             <li><Link to='/settings' className='hover:text-white hover:underline'>Account settings</Link></li>
                             <li><Link to='/liked' className='hover:text-white hover:underline'>Liked songs</Link></li>
-                            <li><Link to='/chat' className='hover:text-white hover:underline'>Help chat</Link></li>
+                            <li><button type="button" onClick={() => setSupportOpen(true)} className='hover:text-white hover:underline'>Help chat</button></li>
                             <li><Link to='/search' className='hover:text-white hover:underline'>Search</Link></li>
                             <li><Link to='/admin' className='hover:text-white hover:underline'>Admin</Link></li>
                         </ul>
@@ -75,6 +102,24 @@ const Footer = () => {
                 </div>
             </div>
         </footer>
+        <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+            <DialogContent className="border-zinc-700 bg-zinc-900 text-white">
+                <DialogHeader>
+                    <DialogTitle>Contact support</DialogTitle>
+                    <DialogDescription>Send your request to {SUPPORT_EMAIL}.</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSupportSubmit} className="space-y-4">
+                    <input required type="text" placeholder="Your name" value={supportForm.name} onChange={(event) => setSupportForm({ ...supportForm, name: event.target.value })} className="h-11 w-full rounded border border-zinc-700 bg-zinc-800 px-3 text-white" />
+                    <input required type="email" placeholder="Your email" value={supportForm.email} onChange={(event) => setSupportForm({ ...supportForm, email: event.target.value })} className="h-11 w-full rounded border border-zinc-700 bg-zinc-800 px-3 text-white" />
+                    <textarea required minLength={10} rows={5} placeholder="How can we help?" value={supportForm.message} onChange={(event) => setSupportForm({ ...supportForm, message: event.target.value })} className="w-full resize-y rounded border border-zinc-700 bg-zinc-800 px-3 py-2 text-white" />
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setSupportOpen(false)}>Cancel</Button>
+                        <Button type="submit">Send request</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+        </>
     );
 };
 
