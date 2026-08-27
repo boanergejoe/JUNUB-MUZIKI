@@ -15,8 +15,10 @@ import { useMusicStore } from "@/stores/useMusicStore";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useAuth } from "@clerk/clerk-react";
 
 const AddAlbumDialog = () => {
+	const { getToken, isLoaded, isSignedIn } = useAuth();
 	const [albumDialogOpen, setAlbumDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,6 +49,9 @@ const AddAlbumDialog = () => {
 		setIsLoading(true);
 
 		try {
+			if (!isLoaded || !isSignedIn) {
+				return toast.error("Please sign in before adding an album");
+			}
 			if (!newAlbum.title.trim() || !newAlbum.artist.trim()) {
 				return toast.error("Album title and artist are required");
 			}
@@ -60,10 +65,13 @@ const AddAlbumDialog = () => {
 			formData.append("genre", newAlbum.genre);
 			formData.append("releaseYear", newAlbum.releaseYear.toString());
 			formData.append("imageFile", imageFile);
+			const token = await getToken();
+			if (!token) return toast.error("Your session has expired. Please sign in again");
 
 			await axiosInstance.post("/admin/albums", formData, {
 				headers: {
 					"Content-Type": "multipart/form-data",
+					Authorization: `Bearer ${token}`,
 				},
 			});
 			await useMusicStore.getState().fetchAlbums();

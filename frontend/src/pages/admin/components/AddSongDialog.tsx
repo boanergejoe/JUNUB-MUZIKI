@@ -16,6 +16,7 @@ import { useMusicStore } from "@/stores/useMusicStore";
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useAuth } from "@clerk/clerk-react";
 
 interface NewSong {
 	title: string;
@@ -28,6 +29,7 @@ interface NewSong {
 }
 
 const AddSongDialog = () => {
+	const { getToken, isLoaded, isSignedIn } = useAuth();
 	const { albums } = useMusicStore();
 	const [songDialogOpen, setSongDialogOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +62,9 @@ const AddSongDialog = () => {
 		setIsLoading(true);
 
 		try {
+			if (!isLoaded || !isSignedIn) {
+				return toast.error("Please sign in before adding a song");
+			}
 			if (!newSong.title.trim() || !newSong.artist.trim()) {
 				return toast.error("Title and artist are required");
 			}
@@ -83,10 +88,13 @@ const AddSongDialog = () => {
 
 			formData.append("audioFile", files.audio);
 			formData.append("imageFile", files.image);
+			const token = await getToken();
+			if (!token) return toast.error("Your session has expired. Please sign in again");
 
 			await axiosInstance.post("/admin/songs", formData, {
 				headers: {
 					"Content-Type": "multipart/form-data",
+					Authorization: `Bearer ${token}`,
 				},
 			});
 			// refresh the song list so user sees the new entry
