@@ -1,5 +1,5 @@
 
-import { SignedOut, UserButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/clerk-react";
 import { LayoutDashboardIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import SignInOAuthButtons from "./SignInOAuthButtons";
@@ -9,6 +9,7 @@ import { buttonVariants } from "./ui/button";
 
 const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: string) => void }) => {
 	const { isAdmin } = useAuthStore();
+	const { isLoaded, isSignedIn } = useAuth();
 	return (
 		<div
 			className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 sm:p-4 sticky top-0 bg-zinc-900/90 backdrop-blur-md z-10"
@@ -27,16 +28,25 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 				/>
 			</div>
 			<div className="flex items-center gap-4 justify-end">
-				{isAdmin && (
-					<Link to={"/admin"} className={cn(buttonVariants({ variant: "outline" }))}>
-						<LayoutDashboardIcon className="size-4  mr-2" />
+				{isLoaded && isSignedIn && isAdmin && (
+					<Link
+						to="/admin"
+						aria-label="Open admin dashboard"
+						className={cn(
+							buttonVariants({ variant: "outline" }),
+							"h-10 shrink-0 border-zinc-600 bg-zinc-800 px-3 text-sm font-semibold text-white hover:border-emerald-400 hover:bg-zinc-700"
+						)}
+					>
+						<LayoutDashboardIcon className="mr-2 size-4" />
 						Admin Dashboard
 					</Link>
 				)}
 				<SignedOut>
 					<SignInOAuthButtons />
 				</SignedOut>
-				<UserButton />
+				<SignedIn>
+					<UserButton />
+				</SignedIn>
 			</div>
 		</div>
 	);

@@ -2,7 +2,9 @@ import { User } from "../models/user.model.js";
 
 export const authCallback = async (req, res, next) => {
 	try {
-		const { id, firstName, lastName, imageUrl } = req.body;
+		const { firstName, lastName, imageUrl } = req.body;
+		const id = req.auth.userId;
+		if (!id) return res.status(401).json({ message: "Unauthorized" });
 
 		// check if user already exists
 		const user = await User.findOne({ clerkId: id });

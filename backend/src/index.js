@@ -62,7 +62,10 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use(express.json()); // to parse req.body
-app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
+app.use(clerkMiddleware({
+	secretKey: process.env.CLERK_SECRET_KEY,
+	publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+}));
 app.use(
 	fileUpload({
 		useTempFiles: true,
@@ -106,7 +109,16 @@ if (process.env.NODE_ENV === "production") {
 
 // error handler
 app.use((err, req, res, next) => {
-	res.status(500).json({ message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message });
+	const statusCode = Number(err.status || err.statusCode) || 500;
+	const message = statusCode === 401
+		? "Unauthorized - please sign in again"
+		: statusCode === 403
+			? "Forbidden"
+			: process.env.NODE_ENV === "production"
+				? "Internal server error"
+				: err.message;
+	console.error("Request failed:", err.message);
+	res.status(statusCode).json({ message });
 });
 
 const startServer = async () => {
