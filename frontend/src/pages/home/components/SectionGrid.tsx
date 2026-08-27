@@ -78,17 +78,6 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel }:
 								>
 									<Heart className={`h-4 w-4 ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
 								</button>
-								{/* like button */}
-								<button
-									className="absolute top-2 left-2 p-1 bg-black/50 rounded-full hover:bg-black/70"
-									onClick={(e) => {
-										e.stopPropagation();
-										if (isLiked) unlikeSong(song._id);
-										else likeSong(song._id);
-									}}
-								>
-									<Heart className={`h-4 w-4 ${isLiked ? "text-red-500 fill-red-500" : "text-white"}`} />
-								</button>
 							</div>
 							<h3 className="font-medium mb-2 truncate">{song.title}</h3>
 							<Link

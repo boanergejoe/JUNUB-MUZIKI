@@ -23,6 +23,7 @@ import SearchPage from "./pages/search/SearchPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import RadioPage from "./pages/radio/RadioPage";
 import PremiumDashboard from "./pages/premium/PremiumDashboard";
+import DJPage from "./pages/playlists/DJPage";
 
 import { Toaster } from "react-hot-toast";
 import NotFoundPage from "./pages/404/NotFoundPage";
@@ -45,6 +46,7 @@ function App() {
 					<Route path='/albums/:albumId' element={<AlbumPage />} />
 					<Route path='/songs' element={<SongsPage />} />
 					<Route path='/playlists' element={<PlaylistsPage />} />
+					<Route path='/dj' element={<DJPage />} />
 					<Route path='/playlists/:playlistId' element={<PlaylistPage />} />
 					<Route path='/liked' element={<LikedSongsPage />} />
 					<Route path='/premium' element={<PremiumPage />} />

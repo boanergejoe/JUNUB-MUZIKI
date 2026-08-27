@@ -4,9 +4,30 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import { Radio, Music } from "lucide-react";
+import { useMusicStore } from "@/stores/useMusicStore";
+import { usePlayerStore } from "@/stores/usePlayerStore";
+import { useState } from "react";
 
 const RadioPage = () => {
     const navigate = useNavigate();
+    const { fetchSongs } = useMusicStore();
+    const { playAlbum } = usePlayerStore();
+    const [selectedMood, setSelectedMood] = useState("Chill");
+    const moods = [
+        { name: "Chill", terms: ["jazz", "soul", "acoustic", "lofi"] },
+        { name: "Focus", terms: ["classical", "ambient", "instrumental", "piano"] },
+        { name: "Energy", terms: ["dance", "electronic", "rock", "pop"] },
+        { name: "Joy", terms: ["pop", "funk", "disco", "dance"] },
+    ];
+
+    const playMood = async (moodName: string) => {
+        setSelectedMood(moodName);
+        const mood = moods.find((item) => item.name === moodName) || moods[0];
+        await fetchSongs("*");
+        const catalog = useMusicStore.getState().songs;
+        const matches = catalog.filter((song) => mood.terms.some((term) => `${song.title} ${song.artist}`.toLowerCase().includes(term)));
+        playAlbum(matches.length ? matches : catalog);
+    };
     const genres = [
         "Pop", "Rock", "Hip-Hop", "Jazz", "Classical", "Electronic",
         "Country", "R&B", "Reggae", "Blues", "Folk", "Indie",
@@ -35,6 +56,18 @@ const RadioPage = () => {
                 <ScrollArea className="max-h-[72vh] overflow-y-auto overflow-x-hidden rounded-[2rem] border border-zinc-800 bg-zinc-950/90 p-4 scrollbar-thin scrollbar-thumb-[#1db954] scrollbar-track-zinc-900">
                     <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
                         <div className="space-y-6">
+                            <div className="rounded-[2rem] border border-[#1db954]/30 bg-[#10251a] p-6 shadow-lg">
+                                <p className="text-sm uppercase tracking-[0.3em] text-[#1db954]">Mood engine</p>
+                                <h2 className="mt-2 text-3xl font-semibold text-white">A station for your moment</h2>
+                                <p className="mt-2 text-zinc-300">Choose a mood and we will shape a queue from your music library.</p>
+                                <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                                    {moods.map((mood) => (
+                                        <Button key={mood.name} onClick={() => playMood(mood.name)} variant={selectedMood === mood.name ? "default" : "outline"} className="rounded-xl">
+                                            {mood.name}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="rounded-[2rem] border border-zinc-800 bg-zinc-900 p-6 shadow-lg">
                                 <div className="flex items-center justify-between gap-4 mb-6">
                                     <div>

@@ -14,6 +14,7 @@ const Footer = () => {
                             <li><Link to='/radio' className='hover:text-white hover:underline'>Radio</Link></li>
                             <li><Link to='/songs' className='hover:text-white hover:underline'>Songs</Link></li>
                             <li><Link to='/playlists' className='hover:text-white hover:underline'>Playlists</Link></li>
+                            <li><Link to='/dj' className='hover:text-white hover:underline'>Collaborative DJ</Link></li>
                         </ul>
                     </div>
                     <div>

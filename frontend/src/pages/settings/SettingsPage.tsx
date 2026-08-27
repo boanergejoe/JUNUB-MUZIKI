@@ -4,10 +4,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Bell, Shield, Download } from "lucide-react";
+import { User, Bell, Shield, Download, RotateCcw } from "lucide-react";
+import toast from "react-hot-toast";
 import Footer from "@/components/Footer";
 
 const SettingsPage = () => {
+    const resetTasteProfile = () => {
+        localStorage.removeItem("junub-muziki-taste-profile");
+        toast.success("Taste profile reset");
+    };
+
     return (
         <div className="flex h-full min-h-0 max-w-4xl mx-auto flex-col p-4 sm:p-6">
             <h1 className="text-3xl font-bold mb-6">Settings</h1>
@@ -103,6 +109,15 @@ const SettingsPage = () => {
                                     Install for Desktop
                                 </Button>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><RotateCcw className="h-5 w-5" /> Taste profile</CardTitle>
+                            <CardDescription>Clear local mood and listening preferences.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button variant="outline" onClick={resetTasteProfile}>Reset taste profile</Button>
                         </CardContent>
                     </Card>
                     <Footer />

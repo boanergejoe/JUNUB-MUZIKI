@@ -11,8 +11,35 @@ export const initializeSocket = (server) => {
 
 	const userSockets = new Map(); // { userId: socketId}
 	const userActivities = new Map(); // {userId: activity}
+	const djRooms = new Map();
 
 	io.on("connection", (socket) => {
+		socket.on("dj_join", ({ roomId, userId }) => {
+			if (!roomId || !userId) return;
+			socket.join(`dj:${roomId}`);
+			if (!djRooms.has(roomId)) djRooms.set(roomId, new Map());
+			socket.emit("dj_state", Array.from(djRooms.get(roomId).values()));
+		});
+
+		socket.on("dj_add", ({ roomId, song, userId }) => {
+			if (!roomId || !song?._id || !userId) return;
+			const room = djRooms.get(roomId) || new Map();
+			const item = room.get(song._id) || { song, votes: 0, voters: [] };
+			if (!item.voters.includes(userId)) item.voters.push(userId);
+			item.votes = item.voters.length;
+			room.set(song._id, item);
+			djRooms.set(roomId, room);
+			io.to(`dj:${roomId}`).emit("dj_state", Array.from(room.values()).sort((a, b) => b.votes - a.votes));
+		});
+
+		socket.on("dj_vote", ({ roomId, songId, userId, direction }) => {
+			const item = djRooms.get(roomId)?.get(songId);
+			if (!item || !userId || ![-1, 1].includes(direction)) return;
+			item.voters = item.voters.filter((id) => id !== userId);
+			if (direction > 0) item.voters.push(userId);
+			item.votes = item.voters.length;
+			io.to(`dj:${roomId}`).emit("dj_state", Array.from(djRooms.get(roomId).values()).sort((a, b) => b.votes - a.votes));
+		});
 		socket.on("user_connected", (userId) => {
 			userSockets.set(userId, socket.id);
 			userActivities.set(userId, "Idle");

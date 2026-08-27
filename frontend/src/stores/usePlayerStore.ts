@@ -66,6 +66,7 @@ interface PlayerStore {
 	isPlaying: boolean;
 	queue: Song[];
 	currentIndex: number;
+	recentlyPlayed: string[];
 
 	// new UI states
 	shuffle: boolean;
@@ -91,6 +92,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	isPlaying: false,
 	queue: [],
 	currentIndex: -1,
+	recentlyPlayed: [],
 	shuffle: false,
 	repeat: "none",
 	showQueue: false,
@@ -100,6 +102,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 			queue: songs,
 			currentSong: get().currentSong || songs[0],
 			currentIndex: get().currentIndex === -1 ? 0 : get().currentIndex,
+			recentlyPlayed: get().recentlyPlayed.filter((id) => songs.some((song) => song._id === id)),
 		});
 	},
 
@@ -119,6 +122,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 			currentSong: song,
 			currentIndex: startIndex,
 			isPlaying: true,
+			recentlyPlayed: [song._id, ...get().recentlyPlayed.filter((id) => id !== song._id)].slice(0, 50),
 		});
 	},
 
@@ -137,6 +141,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 			currentSong: song,
 			isPlaying: true,
 			currentIndex: songIndex >= 0 ? songIndex : get().currentIndex,
+			recentlyPlayed: [song._id, ...get().recentlyPlayed.filter((id) => id !== song._id)].slice(0, 50),
 		});
 	},
 
@@ -160,7 +165,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
 	playNext: () => {
 		if (!ensureLoggedIn()) return;
-		const { currentIndex, queue, shuffle, repeat } = get();
+		const { currentIndex, queue, shuffle, repeat, recentlyPlayed } = get();
 
 		// if we are repeating one, just replay the same song
 		if (repeat === "one") {
@@ -172,7 +177,13 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 			return;
 		}
 
-		const nextIndex = getNextIndex(currentIndex, queue.length, shuffle);
+		const nextIndex = shuffle && queue.length > 1
+			? queue
+				.map((song, index) => ({ index, age: recentlyPlayed.indexOf(song._id) }))
+				.filter(({ index }) => index !== currentIndex)
+				.sort((left, right) => (right.age < 0 ? Infinity : right.age) - (left.age < 0 ? Infinity : left.age))
+				.slice(0, Math.min(3, queue.length - 1))[Math.floor(Math.random() * Math.min(3, queue.length - 1))]?.index ?? currentIndex + 1
+			: getNextIndex(currentIndex, queue.length, false);
 
 		if (nextIndex < queue.length) {
 			const nextSong = queue[nextIndex];
@@ -181,6 +192,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 				currentSong: nextSong,
 				currentIndex: nextIndex,
 				isPlaying: true,
+				recentlyPlayed: [nextSong._id, ...recentlyPlayed.filter((id) => id !== nextSong._id)].slice(0, 50),
 			});
 		} else if (repeat === "all" && queue.length > 0) {
 			// wrap around
