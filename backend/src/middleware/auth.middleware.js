@@ -1,5 +1,4 @@
 import { clerkClient } from "@clerk/express";
-import { User } from "../models/user.model.js";
 
 export const protectRoute = async (req, res, next) => {
 	if (!req.auth?.userId) {
@@ -12,16 +11,20 @@ export const requireAdmin = async (req, res, next) => {
 	try {
 		const currentUser = await clerkClient.users.getUser(req.auth.userId);
 		const configuredAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-		const currentUserEmail = currentUser.primaryEmailAddress?.emailAddress?.trim().toLowerCase();
-		const isSuperAdmin = Boolean(configuredAdminEmail && currentUserEmail && configuredAdminEmail === currentUserEmail);
-		const databaseUser = await User.findOne({ clerkId: req.auth.userId }).select("isAdmin");
-		const isAdmin = isSuperAdmin || Boolean(databaseUser?.isAdmin);
+		const primaryEmail = currentUser.emailAddresses.find(
+			(emailAddress) => emailAddress.id === currentUser.primaryEmailAddressId
+		);
+		const currentUserEmail = primaryEmail?.emailAddress?.trim().toLowerCase();
+		const isVerified = primaryEmail?.verification?.status === "verified";
+		const isSuperAdmin = Boolean(
+			configuredAdminEmail && currentUserEmail && configuredAdminEmail === currentUserEmail && isVerified
+		);
 
-		if (!isAdmin) {
-			return res.status(403).json({ message: "Unauthorized - you must be an admin" });
+		if (!isSuperAdmin) {
+			return res.status(403).json({ message: "Only the verified super admin account may access this area" });
 		}
 
-		req.admin = { isSuperAdmin, email: currentUserEmail };
+		req.admin = { isSuperAdmin: true, email: currentUserEmail };
 		next();
 	} catch (error) {
 		next(error);

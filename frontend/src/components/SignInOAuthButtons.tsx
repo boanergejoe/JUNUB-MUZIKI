@@ -1,26 +1,14 @@
-import { useSignIn } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/clerk-react";
+import { LogIn } from "lucide-react";
 import { Button } from "./ui/button";
 
-const SignInOAuthButtons = () => {
-	const { signIn, isLoaded } = useSignIn();
-
-	if (!isLoaded) {
-		return null;
-	}
-
-	const signInWithGoogle = () => {
-		signIn.authenticateWithRedirect({
-			strategy: "oauth_google",
-			redirectUrl: "/sso-callback",
-			redirectUrlComplete: "/auth-callback",
-		});
-	};
-
-	return (
-		<Button onClick={signInWithGoogle} variant={"secondary"} className='w-full text-white border-zinc-200 h-11'>
-			<img src='/google.png' alt='Google' className='size-5' />
-			Continue with Google
+const SignInOAuthButtons = () => (
+	<SignInButton mode="modal" forceRedirectUrl="/auth-callback">
+		<Button variant="secondary" className="h-11 text-white">
+			<LogIn className="mr-2 size-4" />
+			Sign in
 		</Button>
-	);
-};
+	</SignInButton>
+);
+
 export default SignInOAuthButtons;

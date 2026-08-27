@@ -35,7 +35,9 @@ initializeSocket(httpServer);
 
 app.use(
 	cors({
-		origin: process.env.NODE_ENV === "production" ? "*" : "http://localhost:3000",
+		origin: process.env.NODE_ENV === "production"
+			? true
+			: (origin, callback) => callback(null, !origin || /^https?:\/\/localhost:\d+$/.test(origin)),
 		credentials: true,
 	})
 );
@@ -83,11 +85,6 @@ cron.schedule("0 * * * *", () => {
 			}
 			for (const file of files) {
 				fs.unlink(path.join(tempDir, file), (err) => { });
-
-		app.get("/api/songs/featured", getFeaturedSongs);
-		app.get("/api/songs/made-for-you", getMadeForYouSongs);
-		app.get("/api/songs/trending", getTrendingSongs);
-		app.get("/api/songs/popular", getMostPopularSongs);
 			}
 		});
 	}

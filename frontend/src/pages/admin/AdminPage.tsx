@@ -8,20 +8,26 @@ import AlbumsTabContent from "./components/AlbumsTabContent";
 import PremiumTabContent from "./components/PremiumTabContent";
 import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
-import AdminAccess from "./components/AdminAccess";
+import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
-	const { isAdmin, isSuperAdmin, isLoading } = useAuthStore();
+	const { isAdmin, isLoading } = useAuthStore();
+	const navigate = useNavigate();
 
 	const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
 
 	useEffect(() => {
+		if (!isLoading && !isAdmin) navigate("/", { replace: true });
+	}, [isAdmin, isLoading, navigate]);
+
+	useEffect(() => {
+		if (!isAdmin) return;
 		fetchAlbums();
 		fetchSongs();
 		fetchStats();
-	}, [fetchAlbums, fetchSongs, fetchStats]);
+	}, [fetchAlbums, fetchSongs, fetchStats, isAdmin]);
 
-	if (!isAdmin && !isLoading) return <div>Unauthorized</div>;
+	if (!isAdmin) return null;
 
 	return (
 		<div
@@ -31,7 +37,6 @@ const AdminPage = () => {
 			<Header />
 
 			<DashboardStats />
-			{isSuperAdmin && <AdminAccess />}
 
 			<Tabs defaultValue='songs' className='space-y-6'>
 				<TabsList className='p-1 bg-zinc-800/50'>
