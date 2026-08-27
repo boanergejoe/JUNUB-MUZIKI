@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 import { clerkMiddleware } from "@clerk/express";
 import fileUpload from "express-fileupload";
 import path from "path";
@@ -8,6 +7,7 @@ import fs from "fs";
 import { createServer } from "http";
 import cron from "node-cron";
 
+import "./config/env.js";
 import { initializeSocket } from "./lib/socket.js";
 
 import { connectDB } from "./lib/db.js";
@@ -18,9 +18,6 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js"; // added for user playlists
-
-
-dotenv.config();
 
 const __dirname = path.resolve();
 const app = express();
@@ -89,7 +86,16 @@ app.use((err, req, res, next) => {
 	res.status(500).json({ message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message });
 });
 
-httpServer.listen(PORT, () => {
-	console.log("Server is running on port " + PORT);
-	connectDB();
-});
+const startServer = async () => {
+	try {
+		await connectDB();
+		httpServer.listen(PORT, () => {
+			console.log("Server is running on port " + PORT);
+		});
+	} catch (error) {
+		console.error("Failed to start backend:", error.message);
+		process.exitCode = 1;
+	}
+};
+
+startServer();
