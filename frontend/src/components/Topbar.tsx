@@ -11,11 +11,11 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 	const { isAdmin } = useAuthStore();
 	const { isLoaded, isSignedIn } = useAuth();
 	return (
-		<div className="sticky top-0 z-10 flex items-center gap-2 bg-black px-3 py-3 backdrop-blur-md sm:gap-3 sm:px-5">
+		<div className="sticky top-0 z-10 flex min-h-16 items-center gap-2 border-b border-white/5 bg-black/90 px-3 py-2.5 backdrop-blur-md sm:gap-3 sm:px-5">
 			<Link to="/" aria-label="Junub Muziki home" className="hidden shrink-0 sm:block">
 				<img src="/Junub%20Muziki.png" className="size-10 rounded-full object-cover" alt="Junub Muziki logo" />
 			</Link>
-			<Link to="/" aria-label="Home" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700">
+			<Link to="/" aria-label="Home" className="flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 shadow-lg shadow-black/20 transition hover:border-zinc-500 hover:bg-zinc-700">
 				<Home className="size-5" />
 			</Link>
 			<div className="relative flex min-w-0 flex-1 items-center sm:max-w-[570px]">
@@ -23,11 +23,11 @@ const Topbar = ({ search, setSearch }: { search: string; setSearch: (value: stri
 				<input
 					type="text"
 					placeholder="What do you want to play?"
-					className="h-11 w-full rounded-full border border-transparent bg-zinc-800 pl-11 pr-11 text-sm text-white outline-none transition focus:border-zinc-500 focus:bg-zinc-700"
+					className="h-10 w-full rounded-full border border-zinc-700/70 bg-zinc-900 pl-10 pr-11 text-[13px] text-white outline-none transition placeholder:text-zinc-500 focus:border-zinc-500 focus:bg-zinc-800 sm:h-11 sm:text-sm"
 					value={search}
 					onChange={e => setSearch(e.target.value)}
 				/>
-				<SlidersHorizontal className="absolute right-3 size-5 text-zinc-400" />
+				<button type="button" aria-label="Search filters" className="absolute right-1.5 flex size-7 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-700 hover:text-white"><SlidersHorizontal className="size-4" /></button>
 			</div>
 			<div className="ml-auto flex items-center gap-3">
 				<div className="hidden items-center gap-4 border-r border-zinc-700 pr-4 text-sm font-semibold text-zinc-300 lg:flex">

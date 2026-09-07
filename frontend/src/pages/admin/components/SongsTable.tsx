@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { Calendar, Trash2 } from "lucide-react";
+import EditSongDialog from "./EditSongDialog";
 
 const SongsTable = () => {
 	const { songs, isLoading, error, deleteSong } = useMusicStore();
@@ -60,6 +61,7 @@ const SongsTable = () => {
 
 						<TableCell className='text-right'>
 							<div className='flex gap-2 justify-end'>
+									<EditSongDialog song={song} />
 								<Button
 									variant={"ghost"}
 									size={"sm"}

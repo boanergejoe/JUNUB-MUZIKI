@@ -83,9 +83,14 @@ export const deleteSong = async (req, res, next) => {
 export const updateSong = async (req, res, next) => {
 	try {
 		const { id } = req.params;
-		const { isPremium, premiumTier } = req.body;
+		const { title, artist, genre, duration, albumId, isPremium, premiumTier } = req.body;
 
 		const updates = {};
+		if (typeof title !== "undefined") updates.title = title.trim();
+		if (typeof artist !== "undefined") updates.artist = artist.trim();
+		if (typeof genre !== "undefined") updates.genre = genre.trim();
+		if (typeof duration !== "undefined") updates.duration = Number(duration);
+		if (typeof albumId !== "undefined") updates.albumId = albumId || null;
 		if (typeof isPremium !== "undefined") {
 			updates.isPremium = isPremium === "true" || isPremium === true;
 		}
@@ -93,7 +98,21 @@ export const updateSong = async (req, res, next) => {
 			updates.premiumTier = premiumTier || null;
 		}
 
-		const updatedSong = await Song.findByIdAndUpdate(id, updates, { new: true });
+		const song = await Song.findById(id);
+		if (!song) {
+			return res.status(404).json({ message: "Song not found" });
+		}
+
+		if (typeof albumId !== "undefined" && String(song.albumId || "") !== String(updates.albumId || "")) {
+			if (song.albumId) {
+				await Album.findByIdAndUpdate(song.albumId, { $pull: { songs: song._id } });
+			}
+			if (updates.albumId) {
+				await Album.findByIdAndUpdate(updates.albumId, { $addToSet: { songs: song._id } });
+			}
+		}
+
+		const updatedSong = await Song.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
 
 		if (!updatedSong) {
 			return res.status(404).json({ message: "Song not found" });

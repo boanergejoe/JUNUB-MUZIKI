@@ -79,7 +79,7 @@ const HomePage = () => {
 					</div>
 					<FeaturedSection />
 					<MediaRail title="Popular radio" subtitle="Your daily mix of artists and sounds" songs={popularSongs} variant="radio" />
-					<ChartRail />
+					<ChartRail featuredSongs={featuredSongs} trendingSongs={trendingSongs} popularSongs={popularSongs} />
 					<div className="space-y-8">
 						<SectionGrid title="Trending songs" songs={filterSongs(trendingSongs)} isLoading={isLoading} showAll compact />
 						<SectionGrid title="Most Popular" songs={filterSongs(popularSongs)} isLoading={isLoading} showAll />
@@ -116,14 +116,16 @@ const MediaRail = ({ title, subtitle, songs, variant }: { title: string; subtitl
 	</section>
 );
 
-const ChartRail = () => {
+	const ChartRail = ({ featuredSongs, trendingSongs, popularSongs }: { featuredSongs: Song[]; trendingSongs: Song[]; popularSongs: Song[] }) => {
 	const charts = [
-		{ title: "Top Songs", region: "Global", colors: "from-fuchsia-700 to-violet-500" },
-		{ title: "Top Songs", region: "USA", colors: "from-red-600 to-rose-500" },
-		{ title: "Top 50", region: "Global", colors: "from-cyan-700 to-blue-950" },
-		{ title: "Top 50", region: "USA", colors: "from-pink-600 to-red-600" },
+		{ title: "Top Songs", region: "Featured", songs: featuredSongs, colors: "from-fuchsia-700 to-violet-500" },
+		{ title: "Top Songs", region: "Trending", songs: trendingSongs, colors: "from-red-600 to-rose-500" },
+		{ title: "Top 50", region: "Popular", songs: popularSongs, colors: "from-cyan-700 to-blue-950" },
+		{ title: "Daily Mix", region: "Junub Muziki", songs: [...featuredSongs, ...popularSongs], colors: "from-pink-600 to-red-600" },
 	];
-	return <section className="mb-9"><div className="mb-4 flex items-center justify-between"><h2 className="text-2xl font-bold">Featured charts</h2><Link to="/songs" className="rounded-full px-3 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white">View all</Link></div><HorizontalScroll label="featured charts">{charts.map((chart) => <div key={`${chart.title}-${chart.region}`} className={`flex aspect-[0.78] min-w-[150px] snap-start flex-col justify-between rounded-lg bg-gradient-to-br ${chart.colors} p-4 text-white sm:min-w-[180px]`}><Disc3 className="size-4" /><div><p className="text-2xl font-black leading-none sm:text-3xl">{chart.title}</p><p className="mt-4 text-xs font-bold uppercase tracking-[0.25em] text-white/80">{chart.region}</p></div><p className="text-xs font-semibold">Weekly music charts</p></div>)}</HorizontalScroll></section>;
+	const { playAlbum } = usePlayerStore();
+
+	return <section className="mb-9"><div className="mb-4 flex items-center justify-between"><div><h2 className="text-2xl font-bold">Featured charts</h2><p className="mt-1 text-sm text-zinc-400">Fresh picks from your music library</p></div><Link to="/songs" className="rounded-full px-3 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white">View all</Link></div><HorizontalScroll label="featured charts">{charts.map((chart) => { const songs = Array.from(new Map(chart.songs.map((song) => [song._id, song])).values()); const cover = songs[0]; return <button type="button" key={`${chart.title}-${chart.region}`} onClick={() => playAlbum(songs)} disabled={songs.length === 0} className={`group relative flex aspect-[0.78] min-w-[150px] snap-start flex-col justify-between overflow-hidden rounded-lg bg-gradient-to-br ${chart.colors} p-4 text-left text-white shadow-lg shadow-black/20 transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[180px]`}><div className="absolute inset-0 opacity-25 transition group-hover:opacity-40">{cover && <img src={cover.imageUrl} alt="" className="h-full w-full object-cover" />}</div><div className="relative flex items-center justify-between"><Disc3 className="size-4" /><span className="rounded-full bg-black/25 px-2 py-1 text-[10px] font-bold">{songs.length} tracks</span></div><div className="relative"><p className="text-2xl font-black leading-none sm:text-3xl">{chart.title}</p><p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-white/80">{chart.region}</p></div><p className="relative text-xs font-semibold">Play this chart</p></button>; })}</HorizontalScroll></section>;
 };
 
 const ArtistRail = ({ artists }: { artists: Song[] }) => <section className="mb-9"><div className="mb-4 flex items-center justify-between"><h2 className="text-2xl font-bold">Popular artists</h2><Link to="/songs" className="rounded-full px-3 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white">View all</Link></div><HorizontalScroll label="popular artists">{artists.map((artist) => <Link key={artist.artist} to={`/artists/${encodeURIComponent(artist.artist)}`} className="group min-w-[120px] snap-start text-center sm:min-w-[150px]"><img src={artist.imageUrl} alt={artist.artist} className="aspect-square w-full rounded-full object-cover ring-1 ring-white/5 transition group-hover:scale-105 group-hover:ring-emerald-400" /><p className="mt-3 truncate font-semibold">{artist.artist}</p><p className="text-sm text-zinc-400">Artist</p></Link>)}</HorizontalScroll></section>;
