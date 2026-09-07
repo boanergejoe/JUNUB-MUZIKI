@@ -105,7 +105,7 @@ const MediaRail = ({ title, subtitle, songs, variant }: { title: string; subtitl
 					<div className={`relative aspect-square overflow-hidden rounded-lg ${variant === "radio" ? "rounded-[18px]" : ""}`}>
 						<img src={song.imageUrl} alt={song.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
 						{variant === "radio" && <div className="absolute inset-x-0 top-0 flex justify-between p-3 text-[10px] font-bold tracking-widest text-white"><Headphones className="size-4" /><span>RADIO</span></div>}
-						<div className="absolute bottom-3 right-3 opacity-0 transition group-hover:opacity-100"><PlayButton song={song} /></div>
+						<div className="absolute bottom-3 right-3 opacity-0 transition group-hover:opacity-100"><PlayButton song={song} queue={songs} /></div>
 					</div>
 					<h3 className="mt-3 truncate font-semibold">{song.artist}</h3>
 					<p className="truncate text-sm text-zinc-400">With {song.title} and more</p>

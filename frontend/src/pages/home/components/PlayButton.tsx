@@ -5,8 +5,8 @@ import { Pause, Play } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
 
-const PlayButton = ({ song }: { song: Song }) => {
-	const { currentSong, isPlaying, setCurrentSong, togglePlay } = usePlayerStore();
+const PlayButton = ({ song, queue }: { song: Song; queue?: Song[] }) => {
+	const { currentSong, isPlaying, playAlbum, setCurrentSong, togglePlay } = usePlayerStore();
 	const { user, isLoaded } = useUser();
 	const isLoggedIn = isLoaded && !!user;
 	const isCurrentSong = currentSong?._id === song._id;
@@ -17,6 +17,7 @@ const PlayButton = ({ song }: { song: Song }) => {
 			return;
 		}
 		if (isCurrentSong) togglePlay();
+		else if (queue?.length) playAlbum(queue, Math.max(0, queue.findIndex((queuedSong) => queuedSong._id === song._id)));
 		else setCurrentSong(song);
 	};
 

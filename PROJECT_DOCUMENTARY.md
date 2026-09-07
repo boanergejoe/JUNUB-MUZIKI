@@ -57,6 +57,24 @@ Junub Muziki is a full-stack music streaming and social platform designed to del
 - **Chat:** Real-time messaging with scroll-to-bottom, unread counts, and responsive input box.
 - **Admin:** Admin routes and pages for managing content.
 
+### Ordered Playback
+- `Play all` actions pass the visible song collection to `usePlayerStore.playAlbum` in display order.
+- Individual song cards pass the same collection and start at the selected song's index.
+- Playlist rows preserve the API's song order and display numbered positions.
+- `AudioPlayer` calls `playNext` when a track ends. Normal playback advances sequentially; Repeat All wraps the queue and Shuffle changes the next-song selection.
+
+### Search
+- The top search field keeps the complete draft query while the user types.
+- Pressing Enter navigates to `/search?q=...` with the full encoded query.
+- The filter control provides genre navigation through `/search?genre=...`.
+
+### Admin Catalog
+- Admins can create, edit, and delete songs.
+- Song editing covers title, artist, genre, duration, album membership, and Premium metadata.
+- Admins can create, edit, and delete albums.
+- Album editing covers title, artist, genre, and release year.
+- Album updates are exposed through protected `PATCH /api/admin/albums/:id` and song updates through protected `PATCH /api/admin/songs/:id`.
+
 ## Flowchart
 
 ```mermaid
@@ -106,6 +124,20 @@ graph TD
   - Install dependencies: `npm install`
   - Start server: `npm start`
   - Seed data: `node seeds/albums.js`, `node seeds/songs.js`
+
+### Root Commands
+- `npm run install` installs backend and frontend dependencies.
+- `npm run dev` starts both development servers through `concurrently`.
+- `npm run build` installs package dependencies and builds the frontend for production.
+- `npm start` starts the backend, which serves the production frontend build.
+
+### Validation
+- `npm run build --prefix frontend` runs TypeScript checking and the Vite production build.
+- `npm run lint --prefix frontend` runs ESLint.
+- `node --check backend/src/controller/admin.controller.js` validates backend controller syntax.
+
+### Environment Variables
+The backend requires MongoDB, Clerk, Cloudinary, and PesaPal configuration. The frontend requires `VITE_CLERK_PUBLISHABLE_KEY`. See `README.md` for the complete variable list and local setup instructions.
 
 ## Extensibility
 - Add new pages/components in `src/pages` or `src/components`

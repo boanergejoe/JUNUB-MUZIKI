@@ -2,7 +2,7 @@ import { Song } from "@/types";
 import SectionGridSkeleton from "./SectionGridSkeleton";
 import { Button } from "@/components/ui/button";
 import PlayButton from "./PlayButton";
-import { Plus, Heart } from "lucide-react";
+import { Play, Plus, Heart, Pause } from "lucide-react";
 import toast from "react-hot-toast";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import { useUserStore } from "@/stores/useUserStore";
@@ -20,6 +20,13 @@ type SectionGridProps = {
 const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel, compact = false }: SectionGridProps) => {
 	const navigate = useNavigate();
 	const { likedSongs, likeSong, unlikeSong } = useUserStore();
+	const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
+	const isCollectionPlaying = songs.some((song) => song._id === currentSong?._id);
+	const handlePlayCollection = () => {
+		if (!songs.length) return;
+		if (isCollectionPlaying) togglePlay();
+		else playAlbum(songs, 0);
+	};
 
 	if (isLoading) return <SectionGridSkeleton />;
 
@@ -27,6 +34,11 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel, c
 		<div className="mb-8">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
 				<h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
+				<div className="flex items-center gap-2">
+					<Button variant="outline" size="sm" className="gap-2 border-zinc-700 text-zinc-300 hover:border-emerald-400 hover:text-white" onClick={handlePlayCollection} disabled={!songs.length}>
+						{isCollectionPlaying && isPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
+						{isCollectionPlaying && isPlaying ? "Pause" : "Play all"}
+					</Button>
 				{showAll && (
 					<Button
 						variant="link"
@@ -36,6 +48,7 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel, c
 						{showAllLabel || "View all"}
 					</Button>
 				)}
+				</div>
 			</div>
 
 			<HorizontalScroll label={title} className="gap-3 sm:gap-4">
@@ -54,7 +67,7 @@ const SectionGrid = ({ songs, title, isLoading, showAll = false, showAllLabel, c
 										className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
 									/>
 								</div>
-								<PlayButton song={song} />
+								<PlayButton song={song} queue={songs} />
 								{/* add to queue button */}
 								<button
 									className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70"
