@@ -32,11 +32,10 @@ const HomePage = () => {
 	const [search, setSearch] = useState("");
 	const navigate = useNavigate();
 
-	const handleSearchChange = (value: string) => {
-		setSearch(value);
-		if (value.trim()) {
-			navigate(`/search?q=${encodeURIComponent(value)}`);
-		}
+	const handleSearchChange = (value: string) => setSearch(value);
+	const handleSearchSubmit = () => {
+		const query = search.trim();
+		if (query) navigate(`/search?q=${encodeURIComponent(query)}`);
 	};
 
 	useEffect(() => {
@@ -67,7 +66,7 @@ const HomePage = () => {
 
 	return (
 		<main className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
-			<Topbar search={search} setSearch={handleSearchChange} />
+			<Topbar search={search} setSearch={handleSearchChange} onSearch={handleSearchSubmit} />
 			<ScrollArea className="min-h-0 flex-1">
 				<div className="grid min-w-0 w-full max-w-full grid-cols-[minmax(0,1fr)] overflow-x-hidden p-4 sm:p-7">
 					<div className="mb-7 flex items-end justify-between gap-4">
