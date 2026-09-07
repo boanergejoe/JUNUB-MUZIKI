@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useMusicStore } from "@/stores/useMusicStore";
 import { Calendar, Music, Trash2 } from "lucide-react";
 import { useEffect } from "react";
+import EditAlbumDialog from "./EditAlbumDialog";
 
 const AlbumsTable = () => {
 	const { albums, deleteAlbum, fetchAlbums } = useMusicStore();
@@ -44,7 +45,8 @@ const AlbumsTable = () => {
 							</span>
 						</TableCell>
 						<TableCell className='text-right'>
-							<div className='flex gap-2 justify-end'>
+							<div className='flex justify-end gap-1'>
+								<EditAlbumDialog album={album} />
 								<Button
 									variant='ghost'
 									size='sm'

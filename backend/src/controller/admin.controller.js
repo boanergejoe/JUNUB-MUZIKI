@@ -164,6 +164,26 @@ export const deleteAlbum = async (req, res, next) => {
 	}
 };
 
+export const updateAlbum = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		const { title, artist, genre, releaseYear } = req.body;
+		const updates = {};
+		if (typeof title !== "undefined") updates.title = title.trim();
+		if (typeof artist !== "undefined") updates.artist = artist.trim();
+		if (typeof genre !== "undefined") updates.genre = genre.trim();
+		if (typeof releaseYear !== "undefined") updates.releaseYear = Number(releaseYear);
+
+		const album = await Album.findByIdAndUpdate(id, updates, { new: true, runValidators: true }).populate("songs");
+		if (!album) return res.status(404).json({ message: "Album not found" });
+
+		res.status(200).json(album);
+	} catch (error) {
+		console.log("Error in updateAlbum", error);
+		next(error);
+	}
+};
+
 export const checkAdmin = async (req, res, next) => {
 	res.status(200).json({ admin: true, superAdmin: Boolean(req.admin?.isSuperAdmin) });
 };

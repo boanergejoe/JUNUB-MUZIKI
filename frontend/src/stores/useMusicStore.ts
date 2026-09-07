@@ -27,6 +27,7 @@ interface MusicStore {
 	deleteSong: (id: string) => Promise<void>;
 	deleteAlbum: (id: string) => Promise<void>;
 	updateSong: (id: string, update: Partial<Song>) => Promise<void>;
+	updateAlbum: (id: string, update: Partial<Album>) => Promise<void>;
 }
 
 export const useMusicStore = create<MusicStore>((set) => ({
@@ -91,6 +92,19 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		} catch (error: any) {
 			console.log("Error updating song", error);
 			toast.error("Failed to update song");
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+	updateAlbum: async (id: string, update: Partial<Album>) => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axiosInstance.patch(`/admin/albums/${id}`, update);
+			set((state) => ({ albums: state.albums.map((album) => (album._id === id ? response.data : album)) }));
+			toast.success("Album updated successfully");
+		} catch (error: any) {
+			console.log("Error updating album", error);
+			toast.error("Failed to update album");
 		} finally {
 			set({ isLoading: false });
 		}

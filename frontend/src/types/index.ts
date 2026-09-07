@@ -20,6 +20,7 @@ export interface Album {
 	artist: string;
 	imageUrl: string;
 	releaseYear: number;
+	genre: string;
 	songs: Song[];
 }
 
