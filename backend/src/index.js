@@ -25,15 +25,30 @@ import playlistRoutes from "./routes/playlist.route.js"; // added for user playl
 const __dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
+const isVercel = Boolean(process.env.VERCEL);
 
 const httpServer = createServer(app);
-initializeSocket(httpServer);
+if (!isVercel) {
+	initializeSocket(httpServer);
+}
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
 
 // Health check must work even if Clerk credentials are temporarily missing.
 app.get("/health", (req, res) => {
 	res.status(200).json({ status: "ok" });
+});
+
+// In serverless, connect to MongoDB on demand and cache the connection across
+// warm invocations. Do not block module import on DB startup.
+app.use(async (req, res, next) => {
+	if (!isVercel) return next();
+	try {
+		await connectDB();
+		next();
+	} catch (error) {
+		next(error);
+	}
 });
 
 app.use(clerkMiddleware({
@@ -65,20 +80,22 @@ app.use(
 	})
 );
 
-// cron jobs
-cron.schedule("0 * * * *", () => {
-	if (fs.existsSync(tempDir)) {
-		fs.readdir(tempDir, (err, files) => {
-			if (err) {
-				console.log("error", err);
-				return;
-			}
-			for (const file of files) {
-				fs.unlink(path.join(tempDir, file), (err) => { });
-			}
-		});
-	}
-});
+// Cron jobs are only meaningful in a long-running server process.
+if (!isVercel) {
+	cron.schedule("0 * * * *", () => {
+		if (fs.existsSync(tempDir)) {
+			fs.readdir(tempDir, (err, files) => {
+				if (err) {
+					console.log("error", err);
+					return;
+				}
+				for (const file of files) {
+					fs.unlink(path.join(tempDir, file), () => { });
+				}
+			});
+		}
+	});
+}
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -132,7 +149,9 @@ const startServer = async () => {
 	}
 };
 
-startServer();
+if (!isVercel) {
+	startServer();
+}
 
 // Allows hosting platforms (e.g. Vercel Functions) to use the Express app
 // directly, while `npm start` still runs the standalone HTTP server.
