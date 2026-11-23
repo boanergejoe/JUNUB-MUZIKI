@@ -58,12 +58,18 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 
 PESAPAL_CONSUMER_KEY=your_pesapal_consumer_key
 PESAPAL_CONSUMER_SECRET=your_pesapal_consumer_secret
+
+# optional: comma-separated frontend origins allowed by CORS
+FRONTEND_URL=https://junub-muziki-drq1.vercel.app
 ```
 
 Create `frontend/.env`:
 
 ```env
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+# Backend origin (or full .../api URL). The deployed default is
+# https://junub-muziki.vercel.app/api when this is omitted.
+VITE_API_URL=https://junub-muziki.vercel.app
 ```
 
 Do not commit real credentials. Use the same Clerk publishable key in both applications.
@@ -108,6 +114,8 @@ npm start
 ```
 
 The backend serves the built frontend in production and exposes `/health` for health checks. Configure the environment variables above in the hosting provider.
+
+When the frontend and backend are deployed as **separate** Vercel projects, the frontend uses `VITE_API_URL` (default `https://junub-muziki.vercel.app/api`) for HTTP requests and the same origin for Socket.IO. The backend must allow the frontend origin via `FRONTEND_URL`/CORS. Redeploy both projects after changing these values.
 
 ## Seed Data
 

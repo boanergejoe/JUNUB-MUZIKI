@@ -1,4 +1,5 @@
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance, SOCKET_BASE_URL } from "@/lib/axios";
+import { getErrorMessage } from "@/lib/utils";
 import { Message, User } from "@/types";
 import { create } from "zustand";
 import { io } from "socket.io-client";
@@ -26,11 +27,10 @@ interface ChatStore {
 	clearUnread: (userId: string) => void;
 }
 
-const baseURL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
-
-const socket = io(baseURL, {
+const socket = io(SOCKET_BASE_URL, {
 	autoConnect: false, // only connect if user is authenticated
 	withCredentials: true,
+	reconnection: true,
 });
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -62,8 +62,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 		try {
 			const response = await axiosInstance.get("/users");
 			set({ users: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error, "Failed to load users") });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -164,8 +164,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 		try {
 			const response = await axiosInstance.get(`/users/messages/${userId}`);
 			set({ messages: response.data });
-		} catch (error: any) {
-			set({ error: error.response.data.message });
+		} catch (error: unknown) {
+			set({ error: getErrorMessage(error, "Failed to load messages") });
 		} finally {
 			set({ isLoading: false });
 		}

@@ -17,6 +17,14 @@ const paymentSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    // Stable reference shared with the frontend and PesaPal callbacks. Sparse so
+    // older payment records without this field remain valid.
+    orderTrackingId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        index: true,
+    },
     status: {
         type: String,
         default: "pending",

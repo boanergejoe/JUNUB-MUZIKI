@@ -1,22 +1,11 @@
-import { User } from "../models/user.model.js";
+import { ensureAppUser } from "../lib/user.js";
 
 export const authCallback = async (req, res, next) => {
 	try {
-		const { firstName, lastName, imageUrl } = req.body;
-		const id = req.auth.userId;
+		const id = req.auth?.userId;
 		if (!id) return res.status(401).json({ message: "Unauthorized" });
 
-		// check if user already exists
-		const user = await User.findOne({ clerkId: id });
-
-		if (!user) {
-			// signup
-			await User.create({
-				clerkId: id,
-				fullName: `${firstName || ""} ${lastName || ""}`.trim(),
-				imageUrl,
-			});
-		}
+		await ensureAppUser(id);
 
 		res.status(200).json({ success: true });
 	} catch (error) {

@@ -97,6 +97,19 @@ export const getTrendingSongs = async (req, res, next) => {
 	}
 };
 
+// GET /api/songs/artist/:artistName – used by the artist pages in the frontend.
+export const getSongsByArtist = async (req, res, next) => {
+	try {
+		const { artistName } = req.params;
+		const escapedName = String(artistName).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		const songs = await Song.find({ artist: { $regex: escapedName, $options: "i" } }).sort({ createdAt: -1 });
+		res.json(await hideLockedAudio(songs, req));
+	} catch (error) {
+		console.error(error);
+		next(error);
+	}
+};
+
 export const getMostPopularSongs = async (req, res, next) => {
 	try {
 		const songs = await Song.find()

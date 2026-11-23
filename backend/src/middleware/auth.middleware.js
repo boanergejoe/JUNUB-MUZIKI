@@ -1,9 +1,19 @@
 import { clerkClient } from "@clerk/express";
+import { ensureAppUser } from "../lib/user.js";
 
 export const protectRoute = async (req, res, next) => {
-	if (!req.auth?.userId) {
+	const userId = req.auth?.userId;
+	if (!userId) {
 		return res.status(401).json({ message: "Unauthorized - you must be logged in" });
 	}
+
+	try {
+		await ensureAppUser(userId);
+	} catch (error) {
+		// Auth is still valid; a sync failure should not break the request.
+		console.error("Unable to sync app user:", error.message);
+	}
+
 	next();
 };
 

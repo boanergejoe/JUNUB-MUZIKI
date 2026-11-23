@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllSongs, getFeaturedSongs, getMadeForYouSongs, getTrendingSongs, getMostPopularSongs, searchSongs, getSongById, downloadSong } from "../controller/song.controller.js";
+import { getAllSongs, getFeaturedSongs, getMadeForYouSongs, getTrendingSongs, getMostPopularSongs, getSongsByArtist, searchSongs, getSongById, downloadSong } from "../controller/song.controller.js";
 import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
@@ -14,6 +14,9 @@ router.get("/popular", getMostPopularSongs);
 
 // search endpoint - does not require admin but should check logged in if desired
 router.get("/search", searchSongs);
+
+// named routes must be registered before /:id
+router.get("/artist/:artistName", getSongsByArtist);
 
 // download endpoint - must be before :id route
 router.get("/:id/download", protectRoute, downloadSong);

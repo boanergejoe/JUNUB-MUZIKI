@@ -1,9 +1,17 @@
-// Activate premium status for user
+import crypto from "crypto";
 import { User } from "../models/user.model.js";
 import { Payment } from "../models/payment.model.js";
-
 import { Message } from "../models/message.model.js";
 import { Song } from "../models/song.model.js";
+import { ensureAppUser } from "../lib/user.js";
+import { getPaymentStatus, getPesaPalEmbedUrl, getPesaPalShareUrl, PESAPAL_CONSUMER_KEY } from "../lib/pesapal.js";
+
+const PLAN_PRICES = {
+	Individual: 5.99,
+	Duo: 10.99,
+	Family: 12.99,
+	Student: 2.99,
+};
 
 export const getAllUsers = async (req, res, next) => {
 	try {
@@ -36,20 +44,15 @@ export const getMessages = async (req, res, next) => {
 };
 
 // add a song to the current user's likedSongs list
-// analogous to Spotify's "Save Tracks for User"
-// https://developer.spotify.com/documentation/web-api/reference/#/operations/save-tracks-user
-// note: we do not yet implement sharing, offline-sync, or playback devices
 export const likeSong = async (req, res, next) => {
 	try {
 		const userId = req.auth.userId;
 		const { songId } = req.params;
-		const user = await User.findOne({ clerkId: userId });
-		if (!user) return res.status(404).json({ message: "User not found" });
+		const user = await ensureAppUser(userId);
 
 		if (!user.likedSongs.some((likedSongId) => likedSongId.toString() === songId)) {
 			user.likedSongs.push(songId);
 			await user.save();
-			// Increment likesCount on the song
 			await Song.findByIdAndUpdate(songId, { $inc: { likesCount: 1 } });
 		}
 		res.status(200).json(user);
@@ -64,8 +67,7 @@ export const unlikeSong = async (req, res, next) => {
 	try {
 		const userId = req.auth.userId;
 		const { songId } = req.params;
-		const user = await User.findOne({ clerkId: userId });
-		if (!user) return res.status(404).json({ message: "User not found" });
+		const user = await ensureAppUser(userId);
 
 		const wasLiked = user.likedSongs.some((likedSongId) => likedSongId.toString() === songId);
 		user.likedSongs = user.likedSongs.filter((likedSongId) => likedSongId.toString() !== songId);
@@ -83,8 +85,9 @@ export const unlikeSong = async (req, res, next) => {
 // fetch songs liked by the current user
 export const getLikedSongs = async (req, res, next) => {
 	try {
-		const userId = req.auth.userId;
-		const user = await User.findOne({ clerkId: userId }).populate("likedSongs");
+		const user = await ensureAppUser(req.auth.userId).then((foundUser) =>
+			foundUser && User.findById(foundUser._id).populate("likedSongs")
+		);
 		if (!user) return res.status(404).json({ message: "User not found" });
 		res.status(200).json(user.likedSongs);
 	} catch (error) {
@@ -95,205 +98,166 @@ export const getLikedSongs = async (req, res, next) => {
 
 export const getMe = async (req, res, next) => {
 	try {
-		const userId = req.auth.userId;
-		const user = await User.findOne({ clerkId: userId });
-		if (!user) return res.status(404).json({ message: "User not found" });
-		res.status(200).json({ premium: user.premium });
+		const user = await ensureAppUser(req.auth.userId);
+		res.status(200).json({ premium: Boolean(user?.premium) });
 	} catch (error) {
 		console.error(error);
 		next(error);
 	}
 };
 
-// PesaPal Payment Integration
-import crypto from 'crypto';
-import { getOAuthToken, createPaymentOrder, getPaymentStatus, getPesaPalEmbedUrl, getPesaPalShareUrl, PESAPAL_CONSUMER_KEY, PESAPAL_BASE_URL } from "../lib/pesapal.js";
+// ---------------------------------------------------------------------------
+// PesaPal Premium payments. Pending orders live in MongoDB, not in memory, so
+// they survive Vercel's stateless/cold-start environment and IPN callbacks.
+// ---------------------------------------------------------------------------
 
-// Store pending payments in memory (in production, use a database)
-const pendingPayments = new Map();
+const activatePremium = async (payment) => {
+	if (payment.status !== "completed") {
+		payment.status = "completed";
+		await payment.save();
+	}
 
-// Create PesaPal payment
+	try {
+		await ensureAppUser(payment.userId);
+	} catch (error) {
+		console.error("Unable to sync premium user:", error.message);
+	}
+
+	await User.updateOne({ clerkId: payment.userId }, { $set: { premium: true } });
+};
+
 export const createPesaPalPayment = async (req, res, next) => {
 	try {
-		const userId = req.auth.userId;
+		const userId = req.auth?.userId;
 		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-		
-		const user = await User.findOne({ clerkId: userId });
-		if (!user) return res.status(404).json({ message: "User not found" });
 
 		const { plan, amount } = req.body;
+		const planName = PLAN_PRICES[plan] ? plan : "Individual";
+		const planAmount = Number(amount ?? PLAN_PRICES[planName]);
 
-		const PLAN_PRICES = {
-			Individual: 5.99,
-			Duo: 10.99,
-			Family: 12.99,
-			Student: 2.99,
-		};
+		if (!Number.isFinite(planAmount) || planAmount <= 0) {
+			return res.status(400).json({ success: false, message: "Invalid payment amount" });
+		}
 
-		const planAmount = Number(amount ?? PLAN_PRICES[plan] ?? PLAN_PRICES.Individual);
-		
-		// Generate unique order tracking ID
-		const orderTrackingId = `MELODY_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-		
-		// Store pending payment
-		pendingPayments.set(orderTrackingId, {
+		const orderTrackingId = `MELODY_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+
+		await Payment.create({
 			userId,
-			clerkId: userId,
-			plan,
+			method: "PesaPal",
+			plan: planName,
 			amount: planAmount,
-			status: 'pending',
-			createdAt: new Date()
+			orderTrackingId,
+			status: "pending",
+			receiverBankAccount: PESAPAL_CONSUMER_KEY || "5273 6400 8618 9896",
 		});
 
-		// Use direct PesaPal mrestaurant URL
-		const pesapalStoreUrl = "https://store.pesapal.com/mrestaurant";
-		const paymentUrl = `${pesapalStoreUrl}?amount=${planAmount}&reference=${orderTrackingId}&description=Junub+Muziki+Premium+${plan}`;
-		
-		res.status(200).json({
+		const paymentUrl = `https://store.pesapal.com/mrestaurant?amount=${encodeURIComponent(
+			planAmount
+		)}&reference=${encodeURIComponent(orderTrackingId)}&description=${encodeURIComponent(
+			`Junub Muziki Premium ${planName}`
+		)}`;
+
+		return res.status(200).json({
 			success: true,
 			paymentUrl,
 			orderTrackingId,
 			amount: planAmount,
-			plan
+			plan: planName,
 		});
 	} catch (error) {
 		console.error("Error creating PesaPal payment:", error?.message || error);
-		res.status(500).json({ success: false, message: error?.message || "Failed to initiate payment" });
+		next(error);
 	}
 };
 
-// Check PesaPal payment status
 export const checkPesaPalPayment = async (req, res, next) => {
 	try {
 		const { orderTrackingId } = req.params;
-		
-		const pendingPayment = pendingPayments.get(orderTrackingId);
-		
-		if (!pendingPayment) {
-			return res.status(404).json({ 
-				success: false, 
+		const payment = await Payment.findOne({ orderTrackingId });
+
+		if (!payment) {
+			return res.status(404).json({
+				success: false,
 				message: "Payment not found",
-				paymentStatus: "failed"
+				paymentStatus: "failed",
 			});
 		}
 
-		// Check if payment has expired (5 minutes)
-		const now = new Date();
-		const createdAt = new Date(pendingPayment.createdAt);
-		const diffMinutes = (now - createdAt) / (1000 * 60);
-		
-		if (diffMinutes > 5) {
-			pendingPayment.status = 'expired';
-			pendingPayments.set(orderTrackingId, pendingPayment);
+		if (payment.userId !== req.auth.userId) {
+			return res.status(403).json({ message: "Forbidden" });
+		}
+
+		if (payment.status === "completed") {
+			return res.status(200).json({ success: true, message: "Payment completed", paymentStatus: "completed" });
+		}
+
+		const ageMinutes = (Date.now() - new Date(payment.createdAt).getTime()) / 60000;
+		if (ageMinutes > 5 && payment.status === "pending") {
+			payment.status = "expired";
+			await payment.save();
+			return res.status(200).json({ success: false, message: "Payment expired", paymentStatus: "expired" });
+		}
+
+		if (payment.status === "failed" || payment.status === "expired") {
 			return res.status(200).json({
 				success: false,
-				message: "Payment expired",
-				paymentStatus: "expired"
+				message: `Payment ${payment.status}`,
+				paymentStatus: payment.status,
 			});
 		}
 
-		let paymentStatus = pendingPayment.status;
+		let paymentStatus = "pending";
 		const simulatedStatus = String(req.query.status || "").toLowerCase();
-		
-		if (!simulatedStatus) {
+
+		if (simulatedStatus) {
+			paymentStatus = simulatedStatus;
+		} else {
 			try {
 				const statusData = await getPaymentStatus(orderTrackingId);
-				const rawStatus = typeof statusData === 'string'
+				const rawStatus = typeof statusData === "string"
 					? statusData.toLowerCase()
 					: String(statusData?.status || statusData?.paymentStatus || statusData?.transactionStatus || statusData?.message || "").toLowerCase();
-				if (rawStatus.includes("completed") || rawStatus.includes("paid") || rawStatus.includes("success")) {
-					paymentStatus = 'completed';
-				} else if (rawStatus.includes("failed") || rawStatus.includes("declined") || rawStatus.includes("cancelled") || rawStatus.includes("canceled") || rawStatus.includes("expired")) {
-					paymentStatus = 'failed';
-				} else {
-					paymentStatus = 'pending';
-				}
+
+				if (/completed|paid|success/.test(rawStatus)) paymentStatus = "completed";
+				else if (/failed|declined|cancelled|canceled|expired/.test(rawStatus)) paymentStatus = "failed";
 			} catch (error) {
-				console.error("Error fetching PesaPal payment status from API:", error?.message || error);
-				paymentStatus = pendingPayment.status || 'pending';
+				console.error("Error fetching PesaPal payment status:", error?.message || error);
 			}
-		} else {
-			paymentStatus = simulatedStatus;
 		}
 
-		if (paymentStatus === 'completed') {
-			const user = await User.findOne({ clerkId: pendingPayment.clerkId });
-			if (user) {
-				await Payment.create({
-					userId: pendingPayment.clerkId,
-					method: "PesaPal",
-					plan: pendingPayment.plan,
-					amount: pendingPayment.amount,
-					receiverBankAccount: PESAPAL_CONSUMER_KEY,
-					status: "completed",
-				});
-				user.premium = true;
-				await user.save();
-				pendingPayment.status = 'completed';
-				pendingPayments.set(orderTrackingId, pendingPayment);
-			}
-
-			return res.status(200).json({
-				success: true,
-				message: "Payment completed",
-				paymentStatus: "completed"
-			});
+		if (paymentStatus === "completed") {
+			await activatePremium(payment);
+			return res.status(200).json({ success: true, message: "Payment completed", paymentStatus: "completed" });
 		}
 
-		if (paymentStatus === 'failed') {
-			pendingPayment.status = 'failed';
-			pendingPayments.set(orderTrackingId, pendingPayment);
-			return res.status(200).json({
-				success: false,
-				message: "Payment failed",
-				paymentStatus: "failed"
-			});
+		if (paymentStatus === "failed") {
+			payment.status = "failed";
+			await payment.save();
+			return res.status(200).json({ success: false, message: "Payment failed", paymentStatus: "failed" });
 		}
 
-		return res.status(200).json({
-			success: true,
-			message: "Payment pending",
-			paymentStatus: pendingPayment.status
-		});
+		return res.status(200).json({ success: true, message: "Payment pending", paymentStatus: "pending" });
 	} catch (error) {
 		console.error("Error checking PesaPal payment:", error);
 		next(error);
 	}
 };
 
-// PesaPal callback endpoint (for IPN - Instant Payment Notification)
+// PesaPal callback endpoint (IPN – Instant Payment Notification)
 export const pesapalCallback = async (req, res, next) => {
 	try {
-		const { pesapal_transaction_tracking_id, pesapal_merchant_reference, pesapal_notification_type } = req.body;
-		
-		console.log("PesaPal Callback:", {
-			transactionId: pesapal_transaction_tracking_id,
-			merchantRef: pesapal_merchant_reference,
-			notificationType: pesapal_notification_type
-		});
+		const notification = { ...req.body, ...req.query };
+		const orderTrackingId =
+			notification.pesapal_merchant_reference ||
+			notification.orderTrackingId ||
+			notification.pesapal_transaction_tracking_id;
+		const notificationType = String(notification.pesapal_notification_type || "").toUpperCase();
 
-		if (pesapal_notification_type === "COMPLETE") {
-			const pendingPayment = pendingPayments.get(pesapal_merchant_reference);
-			
-			if (pendingPayment) {
-				const user = await User.findOne({ clerkId: pendingPayment.clerkId });
-				if (user) {
-					await Payment.create({
-						userId: pendingPayment.clerkId,
-						method: "PesaPal",
-						plan: pendingPayment.plan,
-						amount: pendingPayment.amount,
-						receiverBankAccount: PESAPAL_CONSUMER_KEY,
-						status: "completed",
-					});
-					
-					user.premium = true;
-					await user.save();
-					
-					pendingPayment.status = 'completed';
-					pendingPayments.set(pesapal_merchant_reference, pendingPayment);
-				}
-			}
+		console.log("PesaPal Callback:", { orderTrackingId, notificationType });
+
+		if (notificationType === "COMPLETE" && orderTrackingId) {
+			const payment = await Payment.findOne({ orderTrackingId });
+			if (payment) await activatePremium(payment);
 		}
 
 		res.status(200).json({ received: true });
@@ -303,23 +267,17 @@ export const pesapalCallback = async (req, res, next) => {
 	}
 };
 
-// Get PesaPal embed code
 export const getPesaPalEmbedCode = async (req, res, next) => {
 	try {
-		const pesapalStoreUrl = "https://store.pesapal.com/mrestaurant";
-		const embedCode = `<iframe width="200" height="40" src="https://store.pesapal.com/embed-code?pageUrl=${encodeURIComponent(pesapalStoreUrl)}" frameborder="0" allowfullscreen></iframe>`;
-		const shareUrl = pesapalStoreUrl;
-		
+		const shareUrl = getPesaPalShareUrl();
 		res.status(200).json({
 			success: true,
-			embedCode,
+			embedCode: `<iframe width="200" height="40" src="${getPesaPalEmbedUrl(shareUrl)}" frameborder="0" allowfullscreen></iframe>`,
 			shareUrl,
-			consumerKey: PESAPAL_CONSUMER_KEY
+			consumerKey: PESAPAL_CONSUMER_KEY,
 		});
 	} catch (error) {
 		console.error("Error getting PesaPal embed code:", error);
 		next(error);
 	}
 };
-
-

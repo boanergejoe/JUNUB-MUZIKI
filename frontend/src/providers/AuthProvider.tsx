@@ -1,15 +1,10 @@
-import { axiosInstance } from "@/lib/axios";
+import { setAuthTokenProvider } from "@/lib/axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
 import { usePremiumStore } from "@/stores/usePremiumStore";
 import { useAuth } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
-
-const updateApiToken = (token: string | null) => {
-	if (token) axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-	else delete axiosInstance.defaults.headers.common["Authorization"];
-};
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const { getToken, userId, isLoaded, isSignedIn } = useAuth();
@@ -18,23 +13,24 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const { initSocket, disconnectSocket } = useChatStore();
 
 	useEffect(() => {
+		// Resolve a new token on every request; Clerk tokens expire quickly and a
+		// token stored once at login would cause 401s on later API calls.
+		setAuthTokenProvider(isSignedIn ? getToken : null);
+
 		const initAuth = async () => {
 			if (!isLoaded) return;
 
 			try {
-				const token = isSignedIn ? await getToken() : null;
-				updateApiToken(token);
-				if (token && userId) {
+				if (isSignedIn && userId) {
 					await checkAdminStatus();
 					await usePremiumStore.getState().checkPremiumStatus();
-					// init socket
-					if (userId) initSocket(userId);
+					initSocket(userId);
 				} else {
 					useAuthStore.getState().reset();
 					usePremiumStore.getState().reset();
+					disconnectSocket();
 				}
 			} catch (error: any) {
-				updateApiToken(null);
 				console.log("Error in auth provider", error);
 			} finally {
 				setLoading(false);
@@ -44,7 +40,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		initAuth();
 
 		// clean up
-		return () => disconnectSocket();
+		return () => {
+			setAuthTokenProvider(null);
+			disconnectSocket();
+		};
 	}, [getToken, userId, isLoaded, isSignedIn, checkAdminStatus, initSocket, disconnectSocket]);
 
 	if (loading)

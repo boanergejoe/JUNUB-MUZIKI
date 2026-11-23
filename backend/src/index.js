@@ -4,11 +4,13 @@ import fileUpload from "express-fileupload";
 import path from "path";
 import cors from "cors";
 import fs from "fs";
+import os from "os";
 import { createServer } from "http";
 import cron from "node-cron";
 import { fileURLToPath } from "url";
 
 import "./config/env.js";
+import { corsOrigin } from "./config/cors.js";
 import { initializeSocket } from "./lib/socket.js";
 
 import { connectDB } from "./lib/db.js";
@@ -19,12 +21,6 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js"; // added for user playlists
-import {
-	getFeaturedSongs,
-	getMadeForYouSongs,
-	getTrendingSongs,
-	getMostPopularSongs,
-} from "./controller/song.controller.js";
 
 const __dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const app = express();
@@ -33,28 +29,17 @@ const PORT = Number(process.env.PORT) || 5000;
 const httpServer = createServer(app);
 initializeSocket(httpServer);
 
-app.use(
-	cors({
-		origin: process.env.NODE_ENV === "production"
-			? true
-			: (origin, callback) => callback(null, !origin || /^https?:\/\/localhost:\d+$/.test(origin)),
-		credentials: true,
-	})
-);
+app.use(cors({ origin: corsOrigin, credentials: true }));
+
+// Health check must work even if Clerk credentials are temporarily missing.
+app.get("/health", (req, res) => {
+	res.status(200).json({ status: "ok" });
+});
 
 app.use(clerkMiddleware({
 	secretKey: process.env.CLERK_SECRET_KEY,
 	publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
 }));
-
-app.get("/health", (req, res) => {
-	res.status(200).json({ status: "ok" });
-});
-
-app.get("/api/songs/featured", getFeaturedSongs);
-app.get("/api/songs/made-for-you", getMadeForYouSongs);
-app.get("/api/songs/trending", getTrendingSongs);
-app.get("/api/songs/popular", getMostPopularSongs);
 
 if (process.env.NODE_ENV === "production") {
 	const frontendDirectory = path.join(__dirname, "frontend", "dist");
@@ -67,10 +52,12 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use(express.json()); // to parse req.body
+// Serverless filesystems are read-only except the OS temp directory.
+const tempDir = path.join(os.tmpdir(), "junub-muziki-uploads");
 app.use(
 	fileUpload({
 		useTempFiles: true,
-		tempFileDir: path.join(__dirname, "tmp"),
+		tempFileDir: tempDir,
 		createParentPath: true,
 		limits: {
 			fileSize: 10 * 1024 * 1024, // 10MB  max file size
@@ -79,7 +66,6 @@ app.use(
 );
 
 // cron jobs
-const tempDir = path.join(process.cwd(), "tmp");
 cron.schedule("0 * * * *", () => {
 	if (fs.existsSync(tempDir)) {
 		fs.readdir(tempDir, (err, files) => {
@@ -102,6 +88,11 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 app.use("/api/playlists", playlistRoutes); // endpoints to manage user playlists
 
+// Unknown API routes must return JSON, not the SPA index.html.
+app.use("/api", (req, res) => {
+	res.status(404).json({ message: "Endpoint not found" });
+});
+
 if (process.env.NODE_ENV === "production") {
 	app.get("*", (req, res) => {
 		res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
@@ -110,15 +101,22 @@ if (process.env.NODE_ENV === "production") {
 
 // error handler
 app.use((err, req, res, next) => {
-	const statusCode = Number(err.status || err.statusCode) || 500;
+	let statusCode = Number(err.status || err.statusCode) || 500;
+	if (err.name === "ValidationError" || err.name === "CastError") statusCode = 400;
+	if (err.code === 11000) statusCode = 409;
+
 	const message = statusCode === 401
 		? "Unauthorized - please sign in again"
 		: statusCode === 403
 			? "Forbidden"
-			: process.env.NODE_ENV === "production"
-				? "Internal server error"
-				: err.message;
-	console.error("Request failed:", err.message);
+			: statusCode === 400
+				? err.message
+				: statusCode === 409
+					? "A record with this value already exists"
+					: process.env.NODE_ENV === "production"
+						? "Internal server error"
+						: err.message;
+	console.error("Request failed:", statusCode, err.message);
 	res.status(statusCode).json({ message });
 });
 
@@ -135,3 +133,7 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Allows hosting platforms (e.g. Vercel Functions) to use the Express app
+// directly, while `npm start` still runs the standalone HTTP server.
+export default app;
